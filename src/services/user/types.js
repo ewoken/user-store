@@ -11,8 +11,8 @@ export const UserInput = Joi.object({
 })
 
 export const User = Joi.object({
+  _id: Joi.string(),
   email,
-  password,
   createdAt,
   updatedAt
 })

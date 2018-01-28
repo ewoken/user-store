@@ -15,13 +15,12 @@ function buildUserApi (userService) {
     }
   )
 
-  router.get('/account', (req, res) => {
-    res.json(req.user)
-  })
+  router.get('/account', serviceToRoute(userService.getAccount))
 
-  router.post('/logOut', (req, res) => {
+  router.post('/logOut', async (req, res) => {
+    const serviceResult = await userService.logOut(req.body, req.user)
     req.logout()
-    res.json({ logOut: 'OK' })
+    res.json(serviceResult)
   })
 
   if (process.env.NODE_ENV === 'test') { // TODO @common

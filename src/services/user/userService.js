@@ -3,20 +3,28 @@ import { EventEmitter } from 'events'
 import bcrypt from 'bcrypt'
 import { pick } from 'rambda'
 
-import { assertInput } from '../../utils/assertInput'
+import { assertInput, assertInternal } from '../../utils/assertInput'
 import { DomainError, only } from '../../utils/errors'
 
-import { signedUp, loggedIn } from './events'
-import { UserInput, Credentials } from './types'
+import { signedUp, loggedIn, loggedOut } from './events'
+import { UserInput, Credentials, User } from './types'
 import userRepository, { ExistingEmailError } from './userRepository'
 
 const bus = new EventEmitter()
 
-function _assertNotLogged (user) { // TODO go to common
+function _assertNotLogged (user) { // TODO @common
   if (user) {
     throw new DomainError(`You are logged as ${user.email}`, { email: user })
   }
 }
+function _assertLogged (user) { // TODO @common
+  if (user) {
+    assertInternal(User, user)
+    return
+  }
+  throw new DomainError('You are not logged')
+}
+
 const _formatUser = pick(['_id', 'email', 'createdAt', 'updatedAt'])
 
 /**
@@ -65,6 +73,17 @@ async function logIn (credentials, user) {
   return _formatUser(registeredUser)
 }
 
+async function logOut (args, user) {
+  _assertLogged(user)
+  bus.emit('event', loggedOut(user))
+  return Promise.resolve({ logOut: true })
+}
+
+async function getAccount (args, user) {
+  _assertLogged(user)
+  return Promise.resolve(user)
+}
+
 /**
  * delete all users (for test)
  * @return {Promise}
@@ -79,5 +98,7 @@ export default {
 
   signUp,
   logIn,
+  logOut,
+  getAccount,
   deleteAllUsers
 }
