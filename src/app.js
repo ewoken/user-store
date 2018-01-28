@@ -16,6 +16,7 @@ import { errorHandlerMiddleware, logRequestMiddleware } from './utils/customMidd
 
 import initServices from './services'
 import buildApi from './api'
+import buildBusInterface from './bus'
 
 const LocalStrategy = passportLocal.Strategy
 
@@ -62,6 +63,7 @@ async function buildApp (environment) {
   })
 
   buildApi(app, services)
+  buildBusInterface(environment, services)
 
   app.use(errorHandlerMiddleware(logger))
   app.use(logRequestMiddleware(logger))

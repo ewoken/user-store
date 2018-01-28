@@ -5,6 +5,10 @@ class EventDispatcher {
     this.logger = logger
   }
 
+  init () {
+    this.amqpClient.assertExchange(this.eventExchange, 'topic', { durable: false })
+  }
+
   dispatch (event) {
     const { userId, entityType, type, entityId } = event
     const key = `${userId}.${entityType}.${type}.${entityId}`
