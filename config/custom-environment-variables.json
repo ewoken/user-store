@@ -14,9 +14,9 @@
   "bus": {
     "eventExchange": "EVENT_EXCHANGE"
   },
-  "app": {
+  "api": {
     "session": {
-      "secret": "APP_SESSION_SECRET"
+      "secret": "API_SESSION_SECRET"
     }
   }
 }

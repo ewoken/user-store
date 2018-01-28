@@ -2,13 +2,18 @@ import enableDestroy from 'server-destroy'
 import config from 'config'
 
 import buildEnvironment from './environment'
-import buildApp from './app'
+import initServices from './services'
+import buildBusInterface from './bus'
+import buildApi from './api'
 
 import normalizePort from './utils/normalizePort'
 
 async function launchApp () {
   const environment = await buildEnvironment()
-  const app = await buildApp(environment)
+  const services = await initServices(environment)
+  await buildBusInterface(environment, services)
+
+  const app = await buildApi(environment, services)
   const logger = environment.logger
   const port = normalizePort(config.get('server.port'))
 

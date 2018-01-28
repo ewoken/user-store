@@ -15,7 +15,7 @@
     "eventExchange": "eventExchange",
     "eventQueue": "eventQueue"
   },
-  "app": {
+  "api": {
     "session": {
       "name": "sessionId",
       "secret": "plop",

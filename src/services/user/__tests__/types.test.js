@@ -1,6 +1,6 @@
 /* global describe, test */
 import { assertInput } from '../../../utils/assertInput'
-import { User } from '../types'
+import { UserInput } from '../types'
 
 describe('userSchema', () => {
   const user = {
@@ -9,6 +9,6 @@ describe('userSchema', () => {
   }
 
   test('should validate an event object', () => {
-    assertInput(User, user)
+    assertInput(UserInput, user)
   })
 })
