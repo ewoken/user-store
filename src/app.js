@@ -1,15 +1,16 @@
+import config from 'config'
 import express from 'express'
 import uuid from 'uuid'
-import config from 'config'
 
 // middlewares
+import bodyParser from 'body-parser'
 import cors from 'cors'
 import compression from 'compression'
 import helmet from 'helmet'
-import bodyParser from 'body-parser'
-import session from 'express-session'
 import passport from 'passport'
 import passportLocal from 'passport-local'
+import session from 'express-session'
+import configRedisStore from 'connect-redis'
 
 import { errorHandlerMiddleware, logRequestMiddleware } from './utils/customMiddleWares'
 
@@ -22,6 +23,12 @@ async function buildApp (environment) {
   const logger = environment.logger
   const app = express()
   const services = await initServices(environment)
+  const RedisStore = configRedisStore(session)
+  const sessionConfig = {
+    ...config.get('app.session'),
+    store: new RedisStore({ client: environment.redisClient }),
+    logErrors: error => logger.error(error)
+  }
 
   app.use((req, res, next) => {
     req.requestId = uuid()
@@ -32,7 +39,7 @@ async function buildApp (environment) {
   app.use(cors())
   app.use(bodyParser.json())
   app.use(bodyParser.urlencoded({ extended: true }))
-  app.use(session(config.get('app.session')))
+  app.use(session(sessionConfig))
   app.use(passport.initialize())
   app.use(passport.session())
 

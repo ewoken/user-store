@@ -1,7 +1,7 @@
 /* global beforeAll afterAll describe test expect afterEach, beforeEach */
 
 import initUserService from '../index'
-import buildEnvironment from '../../../environment'
+import buildEnvironment from '../../../environment' // TODO ?
 
 let environment, userService
 beforeAll(async () => {
@@ -14,8 +14,8 @@ afterAll(() => {
   environment.close()
 })
 
-afterEach(() => {
-  return userService.deleteAllUsers()
+afterEach(async () => {
+  await userService.deleteAllUsers()
 })
 
 describe('user service', () => {

@@ -1,21 +1,31 @@
 import config from 'config'
 
+import logger from './logger'
 import buildAMQPClient from './amqpClient'
 import buildSequelize from './sequelize'
-import logger from './logger'
+import buildRedisClient from './redisClient'
 
 async function buildEnvironment () {
   logger.info('Building environment...')
-  const amqpClient = await buildAMQPClient(config.get('rabbitmq.url'))
+  const amqpClient = await buildAMQPClient({
+    url: config.get('rabbitmq.url'),
+    logger
+  })
   const sequelize = await buildSequelize(config.get('mysql.url'))
+  const redisClient = buildRedisClient({
+    url: config.get('redis.url'),
+    logger
+  })
 
   return {
+    logger,
     amqpClient,
     sequelize,
-    logger,
+    redisClient,
     close () {
       sequelize.close()
       amqpClient.connection.close()
+      redisClient.end(true)
     }
   }
 }

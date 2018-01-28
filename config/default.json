@@ -8,12 +8,16 @@
   "rabbitmq": {
     "url": "amqp://localhost:5672"
   },
+  "redis": {
+    "url": "redis://localhost:6379"
+  },
   "bus": {
     "eventExchange": "eventExchange",
     "eventQueue": "eventQueue"
   },
   "app": {
     "session": {
+      "name": "sessionId",
       "secret": "plop",
       "resave": false,
       "saveUninitialized": false

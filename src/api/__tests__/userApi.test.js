@@ -1,12 +1,18 @@
-/* global beforeAll, afterAll, describe, test, expect */
+/* global beforeAll, afterAll, afterEach, describe, test, expect */
 
 import launchApp from '../../server'
 import fetchApi from '../../utils/fetchApi'
 import getBaseUrl from '../../utils/getBaseUrl'
 
 let server
+const baseUrl = () => getBaseUrl(server) // TODO @common
+const deleteAllUsers = () => fetchApi(`${baseUrl()}/user`, {
+  method: 'DELETE'
+})
+
 beforeAll(async () => {
   server = await launchApp()
+  await deleteAllUsers()
 })
 
 afterAll(() => {
@@ -16,9 +22,11 @@ afterAll(() => {
   })
 })
 
-describe('user api', () => {
-  const baseUrl = () => getBaseUrl(server)
+afterEach(async () => {
+  await deleteAllUsers()
+})
 
+describe('user api', () => {
   describe('POST /signUp', () => {
     const signUpUser = user => fetchApi(`${baseUrl()}/user/signUp`, {
       method: 'POST',

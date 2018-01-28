@@ -24,6 +24,10 @@ function buildUserApi (userService) {
     res.json({ logOut: 'OK' })
   })
 
+  if (process.env.NODE_ENV === 'test') { // TODO @common
+    router.delete('/', serviceToRoute(userService.deleteAllUsers))
+  }
+
   return router
 }
 
