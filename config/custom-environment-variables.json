@@ -1,0 +1,19 @@
+{
+  "server": {
+    "port": "SERVER_PORT"
+  },
+  "mysql": {
+    "url": "MYSQL_URL"
+  },
+  "rabbitmq": {
+    "url": "RABBITMQ_URL"
+  },
+  "bus": {
+    "eventExchange": "EVENT_EXCHANGE"
+  },
+  "app": {
+    "session": {
+      "secret": "SESSION_SECRET"
+    }
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "server": {
+    "port": 3000
+  },
+  "mysql": {
+    "url": "mysql://root:root@localhost:8889/user-store"
+  },
+  "rabbitmq": {
+    "url": "amqp://localhost:5672"
+  },
+  "bus": {
+    "eventExchange": "eventExchange",
+    "eventQueue": "eventQueue"
+  },
+  "app": {
+    "session": {
+      "secret": "plop",
+      "resave": false,
+      "saveUninitialized": false
+    }
+  }
+}
