@@ -11,13 +11,44 @@ services:
     ports:
       - "5672:5672"
 
+  mysql:
+    image: mysql
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: user-store
+
+  redis:
+    image: redis
+    ports:
+      - "6379:6379"
+
   event-store:
     image: event-store
     depends_on:
       - mongo
       - rabbitmq
     ports:
-      - "3000:3000"
+      - "3001:3001"
     environment:
       MONGODB_URL: mongodb://mongo:27017/event-store
       RABBITMQ_URL: amqp://rabbitmq:5672
+      EVENT_EXCHANGE: eventExchange
+    restart: always
+
+  user-store:
+    image: user-store
+    depends_on:
+      - mysql
+      - rabbitmq
+      - redis
+    ports:
+      - "3000:3000"
+    environment:
+      SERVER_PORT: 3000
+      MYSQL_URL: mysql://root:root@mysql:3306/user-store
+      RABBITMQ_URL: amqp://rabbitmq:5672
+      REDIS_URL: redis://redis:6379
+      EVENT_EXCHANGE: eventExchange
+    restart: always

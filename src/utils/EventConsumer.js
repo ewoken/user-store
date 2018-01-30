@@ -23,7 +23,7 @@ class EventConsumer {
   onEvent (listener) {
     this.eventEmitter.on('message', message => {
       const event = JSON.parse(message.content.toString())
-      this.logger.info('New event received', event)
+      this.logger.info('New event received', event) // TODO
       listener(event)
         .then(() => this.amqpClient.ack(message), () => this.amqpClient.nack(message))
     })
