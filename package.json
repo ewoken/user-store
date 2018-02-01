@@ -52,12 +52,10 @@
   },
   "lint-staged": {
     "*.js": [
-      "eslint --no-ignore",
-      "git add --force"
+      "eslint --no-ignore"
     ],
     "*.json": [
-      "prettier --write",
-      "git add --force"
+      "prettier --write"
     ]
   },
   "scripts": {
