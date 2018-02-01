@@ -5,7 +5,7 @@ import { UserInput } from '../types'
 describe('userSchema', () => {
   const user = {
     email: 'plop@plop.com',
-    password: 'ploploploploploploploplop'
+    password: 'ploploploploploploploplop',
   }
 
   test('should validate an event object', () => {

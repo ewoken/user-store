@@ -8,13 +8,13 @@ import buildApi from './api'
 
 import normalizePort from './utils/normalizePort'
 
-async function launchApp () {
+async function launchApp() {
   const environment = await buildEnvironment()
   const services = await initServices(environment)
   await buildBusInterface(environment, services)
 
   const app = await buildApi(environment, services)
-  const logger = environment.logger
+  const { logger } = environment
   const port = normalizePort(config.get('server.port'))
 
   const server = app.listen(port, () => {

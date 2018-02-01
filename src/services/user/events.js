@@ -3,17 +3,17 @@ export const SIGNED_UP = 'SIGNED_UP'
 export const LOGGED_IN = 'LOGGED_IN'
 export const LOGGED_OUT = 'LOGGED_OUT'
 
-function _userEvent (eventType) {
+function userEvent(eventType) {
   return (user, payload) => ({
     entityType: USER,
-    entityId: user._id,
+    entityId: user.id,
     type: eventType,
-    userId: user._id,
+    userId: user.id,
     createdAt: new Date(),
-    payload
+    payload,
   })
 }
 
-export const signedUp = user => _userEvent(SIGNED_UP)(user, user)
-export const loggedIn = _userEvent(LOGGED_IN)
-export const loggedOut = _userEvent(LOGGED_OUT)
+export const signedUp = user => userEvent(SIGNED_UP)(user, user)
+export const loggedIn = userEvent(LOGGED_IN)
+export const loggedOut = userEvent(LOGGED_OUT)

@@ -12,12 +12,14 @@ import userRepository, { ExistingEmailError } from './userRepository'
 
 const bus = new EventEmitter()
 
-function _assertNotLogged (user) { // TODO @common
+function assertNotLogged(user) {
+  // TODO @common
   if (user) {
     throw new DomainError(`You are logged as ${user.email}`, { email: user })
   }
 }
-function _assertLogged (user) { // TODO @common
+function assertLogged(user) {
+  // TODO @common
   if (user) {
     assertInternal(User, user)
     return
@@ -25,7 +27,7 @@ function _assertLogged (user) { // TODO @common
   throw new DomainError('You are not logged')
 }
 
-const _formatUser = pick(['_id', 'email', 'createdAt', 'updatedAt'])
+const formatUser = pick(['id', 'email', 'createdAt', 'updatedAt'])
 
 /**
  * Sign up a new user
@@ -33,20 +35,24 @@ const _formatUser = pick(['_id', 'email', 'createdAt', 'updatedAt'])
  * @param  {User} user    current logged user
  * @return {User}         created user
  */
-async function signUp (newUser, user) {
-  _assertNotLogged(user)
+async function signUp(newUser, user) {
+  assertNotLogged(user)
   assertInput(UserInput, newUser)
 
   const passwordHash = await bcrypt.hash(newUser.password, 10)
-  const createdUser = await userRepository.createUser({
-    email: newUser.email,
-    passwordHash
-  }).catch(only(ExistingEmailError, error => {
-    throw new DomainError(error.message, { email: newUser.email })
-  }))
+  const createdUser = await userRepository
+    .createUser({
+      email: newUser.email,
+      passwordHash,
+    })
+    .catch(
+      only(ExistingEmailError, error => {
+        throw new DomainError(error.message, { email: newUser.email })
+      }),
+    )
 
   bus.emit('event', signedUp(createdUser))
-  return _formatUser(createdUser)
+  return formatUser(createdUser)
 }
 
 /**
@@ -55,8 +61,8 @@ async function signUp (newUser, user) {
  * @param  {User} user        current logged user
  * @return {Object}             logged user + sessionId
  */
-async function logIn (credentials, user) {
-  _assertNotLogged(user)
+async function logIn(credentials, user) {
+  assertNotLogged(user)
   assertInput(Credentials, credentials)
   const { email, password } = credentials
   const registeredUser = await userRepository.findUserByEmail(email)
@@ -64,23 +70,26 @@ async function logIn (credentials, user) {
   if (!registeredUser) {
     throw new DomainError('Bad credentials', { email })
   }
-  const isPasswordOk = await bcrypt.compare(password, registeredUser.passwordHash)
+  const isPasswordOk = await bcrypt.compare(
+    password,
+    registeredUser.passwordHash,
+  )
   if (!isPasswordOk) {
     throw new DomainError('Bad credentials', { email })
   }
 
   bus.emit('event', loggedIn(registeredUser))
-  return _formatUser(registeredUser)
+  return formatUser(registeredUser)
 }
 
-async function logOut (args, user) {
-  _assertLogged(user)
+async function logOut(args, user) {
+  assertLogged(user)
   bus.emit('event', loggedOut(user))
   return Promise.resolve({ logOut: true })
 }
 
-async function getAccount (args, user) {
-  _assertLogged(user)
+async function getAccount(args, user) {
+  assertLogged(user)
   return Promise.resolve(user)
 }
 
@@ -88,7 +97,7 @@ async function getAccount (args, user) {
  * delete all users (for test)
  * @return {Promise}
  */
-function deleteAllUsers () {
+function deleteAllUsers() {
   assert(process.env.NODE_ENV === 'test') // TODO go to common
   return userRepository.deleteAllUsers()
 }
@@ -100,5 +109,5 @@ export default {
   logIn,
   logOut,
   getAccount,
-  deleteAllUsers
+  deleteAllUsers,
 }

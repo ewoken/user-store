@@ -5,16 +5,16 @@ import buildAMQPClient from './amqpClient'
 import buildSequelize from './sequelize'
 import buildRedisClient from './redisClient'
 
-async function buildEnvironment () {
+async function buildEnvironment() {
   logger.info('Building environment...')
   const amqpClient = await buildAMQPClient({
     url: config.get('rabbitmq.url'),
-    logger
+    logger,
   })
   const sequelize = await buildSequelize(config.get('mysql.url'))
   const redisClient = buildRedisClient({
     url: config.get('redis.url'),
-    logger
+    logger,
   })
 
   return {
@@ -22,11 +22,11 @@ async function buildEnvironment () {
     amqpClient,
     sequelize,
     redisClient,
-    close () {
+    close() {
       sequelize.close()
       amqpClient.connection.close()
       redisClient.end(true)
-    }
+    },
   }
 }
 

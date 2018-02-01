@@ -12,17 +12,20 @@ import passportLocal from 'passport-local'
 import session from 'express-session'
 import configRedisStore from 'connect-redis'
 
-import { errorHandlerMiddleware, logRequestMiddleware } from '../utils/customMiddleWares'
+import {
+  errorHandlerMiddleware,
+  logRequestMiddleware,
+} from '../utils/customMiddleWares'
 
 import buildUserApi from './userApi'
 
-function buildApi ({ logger, redisClient }, { userService }) {
+function buildApi({ logger, redisClient }, { userService }) {
   const app = express()
   const RedisStore = configRedisStore(session)
   const sessionConfig = {
     ...config.get('api.session'),
     store: new RedisStore({ client: redisClient }),
-    logErrors: error => logger.error(error)
+    logErrors: error => logger.error(error),
   }
 
   app.use((req, res, next) => {
@@ -39,15 +42,21 @@ function buildApi ({ logger, redisClient }, { userService }) {
   app.use(passport.session())
 
   const LocalStrategy = passportLocal.Strategy
-  passport.use(new LocalStrategy({
-    usernameField: 'email',
-    passwordField: 'password',
-    passReqToCallback: true
-  }, function (req, email, password, done) {
-    userService.logIn({ email, password }, req.user)
-      .then(user => done(null, user))
-      .catch(err => done(err))
-  }))
+  passport.use(
+    new LocalStrategy(
+      {
+        usernameField: 'email',
+        passwordField: 'password',
+        passReqToCallback: true,
+      },
+      (req, email, password, done) => {
+        userService
+          .logIn({ email, password }, req.user)
+          .then(user => done(null, user))
+          .catch(err => done(err))
+      },
+    ),
+  )
 
   passport.serializeUser((user, cb) => {
     cb(null, user)

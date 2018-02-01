@@ -1,5 +1,5 @@
-export function errorHandlerMiddleware (logger) {
-  return function errorHandler (err, req, res, next) {
+export function errorHandlerMiddleware(logger) {
+  return function errorHandler(err, req, res, next) {
     if (res.headersSent) {
       return next(err)
     }
@@ -21,12 +21,12 @@ export function errorHandlerMiddleware (logger) {
       }
     }
 
-    next()
+    return next()
   }
 }
 
-export function logRequestMiddleware (logger) {
-  return function logRequest (req, res, next) {
+export function logRequestMiddleware(logger) {
+  return function logRequest(req, res, next) {
     const message = `${res.statusCode} ${req.method} ${req.originalUrl}`
     const data = {
       requestId: req.requestId,
@@ -34,7 +34,7 @@ export function logRequestMiddleware (logger) {
       url: req.originalUrl,
       statusCode: res.statusCode,
       headers: req.headers,
-      body: req.body
+      body: req.body,
     }
     if (res.statusCode === 500) {
       logger.error(message, data)

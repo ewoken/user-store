@@ -1,12 +1,12 @@
 import config from 'config'
 import EventDispatcher from '../utils/EventDispatcher'
 
-async function buildBusInterface ({ amqpClient, logger }, { userService }) {
+async function buildBusInterface({ amqpClient, logger }, { userService }) {
   const eventExchange = config.get('bus.eventExchange')
   const eventDispatcher = new EventDispatcher({
     eventExchange,
     amqpClient,
-    logger
+    logger,
   })
 
   eventDispatcher.init()

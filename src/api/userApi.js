@@ -3,17 +3,14 @@ import passport from 'passport'
 
 import serviceToRoute from '../utils/serviceToRoute'
 
-function buildUserApi (userService) {
+function buildUserApi(userService) {
   const router = new express.Router()
 
   router.post('/signUp', serviceToRoute(userService.signUp))
 
-  router.post('/logIn',
-    passport.authenticate('local'),
-    function (req, res) {
-      res.json(req.user)
-    }
-  )
+  router.post('/logIn', passport.authenticate('local'), (req, res) => {
+    res.json(req.user)
+  })
 
   router.get('/account', serviceToRoute(userService.getAccount))
 
@@ -23,7 +20,8 @@ function buildUserApi (userService) {
     res.json(serviceResult)
   })
 
-  if (process.env.NODE_ENV === 'test') { // TODO @common
+  if (process.env.NODE_ENV === 'test') {
+    // TODO @common
     router.delete('/', serviceToRoute(userService.deleteAllUsers))
   }
 

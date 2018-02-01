@@ -1,6 +1,6 @@
 import initUserService from './user'
 
-async function initServices (environment) {
+async function initServices(environment) {
   environment.logger.info('Init services...')
   const services = {}
 
