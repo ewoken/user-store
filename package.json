@@ -52,7 +52,7 @@
   },
   "lint-staged": {
     "*.js": [
-      "eslint --no-ignore --fix",
+      "eslint --no-ignore",
       "git add --force"
     ],
     "*.json": [
