@@ -1,6 +1,6 @@
 function getBaseUrl(server) {
-  const address = server.address()
-  return `http://localhost:${address.port}`
+  const address = server.address();
+  return `http://localhost:${address.port}`;
 }
 
-export default getBaseUrl
+export default getBaseUrl;

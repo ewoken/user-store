@@ -1,4 +1,4 @@
-import fetch from 'isomorphic-fetch'
+import fetch from 'isomorphic-fetch';
 
 async function fetchServer(url, options) {
   const result = await fetch(url, {
@@ -7,12 +7,12 @@ async function fetchServer(url, options) {
       'Content-Type': 'application/json',
       ...options.headers,
     },
-  })
-  const body = await result.json()
+  });
+  const body = await result.json();
   if (!result.ok) {
-    throw new Error(`${result.status} ${result.statusText} ${body.error}`)
+    throw new Error(`${result.status} ${result.statusText} ${body.error}`);
   }
-  return body
+  return body;
 }
 
-export default fetchServer
+export default fetchServer;

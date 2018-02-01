@@ -3,7 +3,7 @@ function serviceToRoute(serviceFunction) {
     serviceFunction(req.body, req.user)
       .then(serviceResult => res.json(serviceResult))
       .then(() => next())
-      .catch(next)
+      .catch(next);
 }
 
-export default serviceToRoute
+export default serviceToRoute;

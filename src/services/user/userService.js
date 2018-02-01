@@ -1,33 +1,33 @@
-import assert from 'assert'
-import { EventEmitter } from 'events'
-import bcrypt from 'bcrypt'
-import { pick } from 'rambda'
+import assert from 'assert';
+import { EventEmitter } from 'events';
+import bcrypt from 'bcrypt';
+import { pick } from 'rambda';
 
-import { assertInput, assertInternal } from '../../utils/assertInput'
-import { DomainError, only } from '../../utils/errors'
+import { assertInput, assertInternal } from '../../utils/assertInput';
+import { DomainError, only } from '../../utils/errors';
 
-import { signedUp, loggedIn, loggedOut } from './events'
-import { UserInput, Credentials, User } from './types'
-import userRepository, { ExistingEmailError } from './userRepository'
+import { signedUp, loggedIn, loggedOut } from './events';
+import { UserInput, Credentials, User } from './types';
+import userRepository, { ExistingEmailError } from './userRepository';
 
-const bus = new EventEmitter()
+const bus = new EventEmitter();
 
 function assertNotLogged(user) {
   // TODO @common
   if (user) {
-    throw new DomainError(`You are logged as ${user.email}`, { email: user })
+    throw new DomainError(`You are logged as ${user.email}`, { email: user });
   }
 }
 function assertLogged(user) {
   // TODO @common
   if (user) {
-    assertInternal(User, user)
-    return
+    assertInternal(User, user);
+    return;
   }
-  throw new DomainError('You are not logged')
+  throw new DomainError('You are not logged');
 }
 
-const formatUser = pick(['id', 'email', 'createdAt', 'updatedAt'])
+const formatUser = pick(['id', 'email', 'createdAt', 'updatedAt']);
 
 /**
  * Sign up a new user
@@ -36,10 +36,10 @@ const formatUser = pick(['id', 'email', 'createdAt', 'updatedAt'])
  * @return {User}         created user
  */
 async function signUp(newUser, user) {
-  assertNotLogged(user)
-  assertInput(UserInput, newUser)
+  assertNotLogged(user);
+  assertInput(UserInput, newUser);
 
-  const passwordHash = await bcrypt.hash(newUser.password, 10)
+  const passwordHash = await bcrypt.hash(newUser.password, 10);
   const createdUser = await userRepository
     .createUser({
       email: newUser.email,
@@ -47,12 +47,12 @@ async function signUp(newUser, user) {
     })
     .catch(
       only(ExistingEmailError, error => {
-        throw new DomainError(error.message, { email: newUser.email })
+        throw new DomainError(error.message, { email: newUser.email });
       }),
-    )
+    );
 
-  bus.emit('event', signedUp(createdUser))
-  return formatUser(createdUser)
+  bus.emit('event', signedUp(createdUser));
+  return formatUser(createdUser);
 }
 
 /**
@@ -62,35 +62,35 @@ async function signUp(newUser, user) {
  * @return {Object}             logged user + sessionId
  */
 async function logIn(credentials, user) {
-  assertNotLogged(user)
-  assertInput(Credentials, credentials)
-  const { email, password } = credentials
-  const registeredUser = await userRepository.findUserByEmail(email)
+  assertNotLogged(user);
+  assertInput(Credentials, credentials);
+  const { email, password } = credentials;
+  const registeredUser = await userRepository.findUserByEmail(email);
 
   if (!registeredUser) {
-    throw new DomainError('Bad credentials', { email })
+    throw new DomainError('Bad credentials', { email });
   }
   const isPasswordOk = await bcrypt.compare(
     password,
     registeredUser.passwordHash,
-  )
+  );
   if (!isPasswordOk) {
-    throw new DomainError('Bad credentials', { email })
+    throw new DomainError('Bad credentials', { email });
   }
 
-  bus.emit('event', loggedIn(registeredUser))
-  return formatUser(registeredUser)
+  bus.emit('event', loggedIn(registeredUser));
+  return formatUser(registeredUser);
 }
 
 async function logOut(args, user) {
-  assertLogged(user)
-  bus.emit('event', loggedOut(user))
-  return Promise.resolve({ logOut: true })
+  assertLogged(user);
+  bus.emit('event', loggedOut(user));
+  return Promise.resolve({ logOut: true });
 }
 
 async function getAccount(args, user) {
-  assertLogged(user)
-  return Promise.resolve(user)
+  assertLogged(user);
+  return Promise.resolve(user);
 }
 
 /**
@@ -98,8 +98,8 @@ async function getAccount(args, user) {
  * @return {Promise}
  */
 function deleteAllUsers() {
-  assert(process.env.NODE_ENV === 'test') // TODO go to common
-  return userRepository.deleteAllUsers()
+  assert(process.env.NODE_ENV === 'test'); // TODO go to common
+  return userRepository.deleteAllUsers();
 }
 
 export default {
@@ -110,4 +110,4 @@ export default {
   logOut,
   getAccount,
   deleteAllUsers,
-}
+};

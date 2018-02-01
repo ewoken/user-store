@@ -1,15 +1,15 @@
-import winston from 'winston'
+import winston from 'winston';
 
 // TODO @common
 const logger = winston.createLogger({
   level: 'info',
   format: winston.format.json(),
   transports: [],
-})
+});
 
-const { NODE_ENV } = process.env
+const { NODE_ENV } = process.env;
 if (NODE_ENV === 'production') {
-  logger.add(new winston.transports.Console())
+  logger.add(new winston.transports.Console());
 } else {
   logger.add(
     new winston.transports.Console({
@@ -19,7 +19,7 @@ if (NODE_ENV === 'production') {
         winston.format.timestamp(),
       ),
     }),
-  )
+  );
 }
 
-export default logger
+export default logger;

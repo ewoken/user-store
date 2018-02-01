@@ -1,12 +1,12 @@
-import initUserService from './user'
+import initUserService from './user';
 
 async function initServices(environment) {
-  environment.logger.info('Init services...')
-  const services = {}
+  environment.logger.info('Init services...');
+  const services = {};
 
-  services.userService = await initUserService(environment)
+  services.userService = await initUserService(environment);
 
-  return services
+  return services;
 }
 
-export default initServices
+export default initServices;

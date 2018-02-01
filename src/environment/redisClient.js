@@ -1,13 +1,13 @@
-import redis from 'redis'
+import redis from 'redis';
 
 function buildRedisClient({ url, logger }) {
-  const client = redis.createClient(url)
+  const client = redis.createClient(url);
 
   client.on('error', error => {
-    logger.error(error)
-  })
+    logger.error(error);
+  });
 
-  return client
+  return client;
 }
 
-export default buildRedisClient
+export default buildRedisClient;

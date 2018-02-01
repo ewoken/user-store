@@ -1,15 +1,15 @@
-import amqp from 'amqplib'
+import amqp from 'amqplib';
 
 // TODO @common
 async function buildAMQPClient({ url, logger }) {
-  const connection = await amqp.connect(url)
-  const channel = await connection.createChannel()
+  const connection = await amqp.connect(url);
+  const channel = await connection.createChannel();
 
   channel.on('error', error => {
-    logger.error(error)
-  })
+    logger.error(error);
+  });
 
-  return channel
+  return channel;
 }
 
-export default buildAMQPClient
+export default buildAMQPClient;

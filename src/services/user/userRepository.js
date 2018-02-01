@@ -1,5 +1,5 @@
-import Sequelize from 'sequelize'
-import ExtendableError from 'es6-error'
+import Sequelize from 'sequelize';
+import ExtendableError from 'es6-error';
 
 function defineUserSchema(sequelize) {
   return sequelize.define(
@@ -28,49 +28,49 @@ function defineUserSchema(sequelize) {
         attributes: ['id', 'email', 'createdAt', 'updatedAt'],
       },
     },
-  )
+  );
 }
 
 export class ExistingEmailError extends ExtendableError {
   constructor(email) {
-    super(`The email ${email} is already used !`)
-    this.email = email
+    super(`The email ${email} is already used !`);
+    this.email = email;
   }
 }
 
 class UserRepository {
   constructor() {
-    this.sequelize = null
-    this.eventCollection = null
+    this.sequelize = null;
+    this.eventCollection = null;
   }
 
   async init(sequelize) {
-    this.sequelize = sequelize
-    this.User = defineUserSchema(sequelize)
-    await this.User.sync()
-    return this
+    this.sequelize = sequelize;
+    this.User = defineUserSchema(sequelize);
+    await this.User.sync();
+    return this;
   }
 
   async createUser(user) {
     const createdUser = await this.User.create(user).catch(
       Sequelize.UniqueConstraintError,
       () => {
-        throw new ExistingEmailError(user.email)
+        throw new ExistingEmailError(user.email);
       },
-    )
-    const userObject = createdUser.toJSON()
-    delete userObject.passwordHash
-    return userObject
+    );
+    const userObject = createdUser.toJSON();
+    delete userObject.passwordHash;
+    return userObject;
   }
 
   async findUserByEmail(email) {
-    const user = await this.User.scope(null).findOne({ where: { email } })
-    return user && user.toJSON()
+    const user = await this.User.scope(null).findOne({ where: { email } });
+    return user && user.toJSON();
   }
 
   async deleteAllUsers() {
-    return this.User.destroy({ force: true })
+    return this.User.destroy({ force: true });
   }
 }
 
-export default new UserRepository()
+export default new UserRepository();
