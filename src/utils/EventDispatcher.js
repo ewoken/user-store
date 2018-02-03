@@ -14,7 +14,6 @@ class EventDispatcher {
   dispatch(event) {
     const { userId, entityType, type, entityId } = event;
     const key = `${userId}.${entityType}.${type}.${entityId}`;
-    this.logger.info('Publish event', event);
     this.amqpClient.publish(
       this.eventExchange,
       key,

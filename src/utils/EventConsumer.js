@@ -31,11 +31,14 @@ class EventConsumer {
   onEvent(listener) {
     this.eventEmitter.on('message', message => {
       const event = JSON.parse(message.content.toString());
-      this.logger.info('New event received', event); // TODO
-      listener(event).then(
-        () => this.amqpClient.ack(message),
-        () => this.amqpClient.nack(message),
-      );
+      this.logger.info(`==> ${event.entityType}/${event.type}`, event);
+      listener(event)
+        .then(() => this.amqpClient.ack(message))
+        .catch(error => {
+          this.logger.error(
+            `Listener of ${event.entityType}/${event.type} failed: ${error}`,
+          );
+        });
     });
   }
 }

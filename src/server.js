@@ -29,6 +29,11 @@ async function launchApp() {
 
   process.on('SIGINT', () => server.close());
   process.on('SIGTERM', () => server.close());
+  process.on('unhandledRejection', (reason, p) => {
+    logger.error(`Unhandled Rejection at: ${p} reason: ${reason}`);
+    server.close();
+    process.exit(1);
+  });
 
   return server;
 }
