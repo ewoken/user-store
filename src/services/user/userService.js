@@ -65,7 +65,7 @@ async function logIn(credentials, user) {
   assertNotLogged(user);
   assertInput(Credentials, credentials);
   const { email, password } = credentials;
-  const registeredUser = await userRepository.findUserByEmail(email);
+  const registeredUser = await userRepository.getUserByEmail(email);
 
   if (!registeredUser) {
     throw new DomainError('Bad credentials', { email });

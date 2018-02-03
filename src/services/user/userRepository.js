@@ -59,11 +59,10 @@ class UserRepository {
       },
     );
     const userObject = createdUser.toJSON();
-    delete userObject.passwordHash;
     return userObject;
   }
 
-  async findUserByEmail(email) {
+  async getUserByEmail(email) {
     const user = await this.User.scope(null).findOne({ where: { email } });
     return user && user.toJSON();
   }
