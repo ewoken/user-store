@@ -1,6 +1,7 @@
+import withLogger from '@ewoken/backend-common/lib/withLoggerService';
+
 import userService from './userService';
 import userRepository from './userRepository';
-import withLogger from '../../utils/withLoggerService';
 
 async function initUserService({ sequelize, logger }) {
   logger.info('Init user service');

@@ -15,7 +15,7 @@ import configRedisStore from 'connect-redis';
 import {
   errorHandlerMiddleware,
   logRequestMiddleware,
-} from '../utils/customMiddleWares';
+} from '@ewoken/backend-common/lib/api/customMiddleWares';
 
 import buildUserApi from './userApi';
 

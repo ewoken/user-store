@@ -1,7 +1,7 @@
 /* global beforeAll afterAll describe test expect afterEach, beforeEach */
 
 import initUserService from '../index';
-import buildEnvironment from '../../../environment'; // TODO ?
+import buildEnvironment from '../../../environment';
 
 let environment;
 let userService;

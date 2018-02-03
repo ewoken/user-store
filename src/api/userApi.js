@@ -1,7 +1,6 @@
 import express from 'express';
 import passport from 'passport';
-
-import serviceToRoute from '../utils/serviceToRoute';
+import serviceToRoute from '@ewoken/backend-common/lib/api/serviceToRoute';
 
 function buildUserApi(userService) {
   const router = new express.Router();

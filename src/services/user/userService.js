@@ -3,8 +3,11 @@ import { EventEmitter } from 'events';
 import bcrypt from 'bcrypt';
 import { pick } from 'rambda';
 
-import { assertInput, assertInternal } from '../../utils/assertInput';
-import { DomainError, only } from '../../utils/errors';
+import {
+  assertInput,
+  assertInternal,
+} from '@ewoken/backend-common/lib/assertInput';
+import { DomainError, only } from '@ewoken/backend-common/lib/errors';
 
 import { signedUp, loggedIn, loggedOut } from './events';
 import { UserInput, Credentials, User } from './types';

@@ -1,12 +1,11 @@
 import enableDestroy from 'server-destroy';
 import config from 'config';
+import normalizePort from '@ewoken/backend-common/lib/normalizePort';
 
 import buildEnvironment from './environment';
 import initServices from './services';
 import buildBusInterface from './bus';
 import buildApi from './api';
-
-import normalizePort from './utils/normalizePort';
 
 async function launchApp() {
   const environment = await buildEnvironment();

@@ -1,5 +1,5 @@
 import config from 'config';
-import EventDispatcher from '../utils/EventDispatcher';
+import EventDispatcher from '@ewoken/backend-common/lib/bus/EventDispatcher';
 
 async function buildBusInterface({ amqpClient, logger }, { userService }) {
   const eventExchange = config.get('bus.eventExchange');

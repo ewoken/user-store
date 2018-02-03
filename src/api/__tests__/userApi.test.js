@@ -1,11 +1,11 @@
 /* global beforeAll, afterAll, afterEach, describe, test, expect */
+import fetchApi from '@ewoken/backend-common/lib/fetchApi';
+import getBaseUrl from '@ewoken/backend-common/lib/getBaseUrl';
 
 import launchApp from '../../server';
-import fetchApi from '../../utils/fetchApi';
-import getBaseUrl from '../../utils/getBaseUrl';
 
 let server;
-const baseUrl = () => getBaseUrl(server); // TODO @common
+const baseUrl = () => getBaseUrl(server);
 const deleteAllUsers = () =>
   fetchApi(`${baseUrl()}/user`, {
     method: 'DELETE',
