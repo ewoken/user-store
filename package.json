@@ -4,6 +4,7 @@
   "main": "index.js",
   "license": "MIT",
   "dependencies": {
+    "@ewoken/backend-common": "1.0.3",
     "amqplib": "^0.5.2",
     "babel-runtime": "^6.26.0",
     "bcrypt": "^1.0.3",
@@ -14,7 +15,6 @@
     "connect-redis": "^3.3.3",
     "cors": "^2.8.4",
     "es6-error": "^4.1.1",
-    "eslint": "^4.17.0",
     "express": "^4.16.2",
     "express-session": "^1.15.6",
     "flow": "^0.2.3",
@@ -31,8 +31,7 @@
     "sequelize": "^4.31.2",
     "server-destroy": "^1.0.1",
     "uuid": "^3.1.0",
-    "winston": "3.0.0-rc1",
-    "@ewoken/backend-common": "1.0.2"
+    "winston": "3.0.0-rc1"
   },
   "devDependencies": {
     "babel-cli": "^6.26.0",
@@ -42,6 +41,7 @@
     "babel-plugin-transform-object-rest-spread": "^6.26.0",
     "babel-plugin-transform-runtime": "^6.23.0",
     "babel-preset-env": "^1.6.1",
+    "eslint": "^4.17.0",
     "eslint-config-airbnb-base": "^12.1.0",
     "eslint-config-prettier": "^2.9.0",
     "eslint-plugin-flowtype": "^2.42.0",

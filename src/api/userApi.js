@@ -11,7 +11,7 @@ function buildUserApi(userService) {
     res.json(req.user);
   });
 
-  router.get('/account', serviceToRoute(userService.getAccount));
+  router.get('/me', serviceToRoute(userService.getCurrentUser));
 
   router.post('/logOut', async (req, res) => {
     const serviceResult = await userService.logOut(req.body, req.user);

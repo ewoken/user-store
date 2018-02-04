@@ -1,4 +1,4 @@
-/* global beforeAll afterAll describe test expect afterEach, beforeEach */
+/* global beforeAll afterAll describe test expect beforeEach */
 
 import initUserService from '../index';
 import buildEnvironment from '../../../environment';
@@ -8,15 +8,17 @@ let userService;
 beforeAll(async () => {
   environment = await buildEnvironment();
   userService = await initUserService(environment);
-  return userService.deleteAllUsers();
 });
 
-afterAll(() => {
-  environment.close();
-});
-
-afterEach(async () => {
+beforeEach(async () => {
+  // clean before each test because the last one may have failed
   await userService.deleteAllUsers();
+});
+
+afterAll(async () => {
+  // clean after all to make environment clean
+  await userService.deleteAllUsers();
+  environment.close();
 });
 
 describe('user service', () => {
@@ -105,6 +107,34 @@ describe('user service', () => {
       await expect(userService.logIn(testUser, testUser)).rejects.toThrow(
         /logged/,
       );
+    });
+  });
+
+  describe('getCurrentUser(args, user)', () => {
+    const user = {
+      id: '7e9e3554-5460-4d49-a91b-277311e9bc0b',
+      email: 'plop@plop.com',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+
+    test('should return the logged user', async () => {
+      const loggedUser = await userService.getCurrentUser({}, user);
+      expect(loggedUser).toEqual(user);
+    });
+  });
+
+  describe('logOut(args, user)', () => {
+    const user = {
+      id: '7e9e3554-5460-4d49-a91b-277311e9bc0b',
+      email: 'plop@plop.com',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+
+    test('should return a status OK when logged', async () => {
+      const status = await userService.logOut({}, user);
+      expect(status).toEqual({ logOut: true });
     });
   });
 });

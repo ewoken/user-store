@@ -28,6 +28,7 @@ function buildApi({ logger, redisClient }, { userService }) {
     logErrors: error => logger.error(error),
   };
 
+  // TODO @common/customMiddleWares
   app.use((req, res, next) => {
     req.requestId = uuid();
     next();
@@ -66,7 +67,7 @@ function buildApi({ logger, redisClient }, { userService }) {
     cb(null, user);
   });
 
-  app.use('/user', buildUserApi(userService));
+  app.use('/users', buildUserApi(userService));
 
   app.use(errorHandlerMiddleware(logger));
   app.use(logRequestMiddleware(logger));

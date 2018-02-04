@@ -91,7 +91,7 @@ async function logOut(args, user) {
   return Promise.resolve({ logOut: true });
 }
 
-async function getAccount(args, user) {
+async function getCurrentUser(args, user) {
   assertLogged(user);
   return Promise.resolve(user);
 }
@@ -111,6 +111,6 @@ export default {
   signUp,
   logIn,
   logOut,
-  getAccount,
+  getCurrentUser,
   deleteAllUsers,
 };
