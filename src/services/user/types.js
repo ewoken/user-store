@@ -1,5 +1,6 @@
 import Joi from 'joi';
 
+export const UserId = Joi.string();
 const email = Joi.string()
   .email()
   .max(255);
@@ -15,7 +16,7 @@ export const UserInput = Joi.object({
 });
 
 export const User = Joi.object({
-  id: Joi.string().required(),
+  id: UserId.required(),
   email: email.required(),
   createdAt: createdAt.required(),
   updatedAt: updatedAt.required(),

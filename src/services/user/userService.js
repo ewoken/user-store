@@ -10,7 +10,7 @@ import {
 import { DomainError, only } from '@ewoken/backend-common/lib/errors';
 
 import { signedUp, loggedIn, loggedOut } from './events';
-import { UserInput, Credentials, User } from './types';
+import { UserId, UserInput, Credentials, User } from './types';
 import userRepository, { ExistingEmailError } from './userRepository';
 
 const bus = new EventEmitter();
@@ -38,7 +38,7 @@ const formatUser = pick(['id', 'email', 'createdAt', 'updatedAt']);
  * @param  {User} user    current logged user
  * @return {User}         created user
  */
-async function signUp(newUser, user) {
+async function signUp(newUser, { user }) {
   assertNotLogged(user);
   assertInput(UserInput, newUser);
 
@@ -64,7 +64,7 @@ async function signUp(newUser, user) {
  * @param  {User} user        current logged user
  * @return {Object}             logged user + sessionId
  */
-async function logIn(credentials, user) {
+async function logIn(credentials, { user }) {
   assertNotLogged(user);
   assertInput(Credentials, credentials);
   const { email, password } = credentials;
@@ -85,15 +85,25 @@ async function logIn(credentials, user) {
   return formatUser(registeredUser);
 }
 
-async function logOut(args, user) {
+async function logOut(args, { user }) {
   assertLogged(user);
   bus.emit('event', loggedOut(user));
   return Promise.resolve({ logOut: true });
 }
 
-async function getCurrentUser(args, user) {
+async function getCurrentUser(args, { user }) {
   assertLogged(user);
-  return Promise.resolve(user);
+  return formatUser(user);
+}
+
+async function getUser(id, { user }) {
+  assertInput(UserId, id);
+  assertLogged(user);
+  if (user.id === id) {
+    const returnedUser = await userRepository.getUserById(id);
+    return formatUser(returnedUser);
+  }
+  return null;
 }
 
 /**
@@ -112,5 +122,6 @@ export default {
   logIn,
   logOut,
   getCurrentUser,
+  getUser,
   deleteAllUsers,
 };

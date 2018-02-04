@@ -11,10 +11,15 @@ function buildUserApi(userService) {
     res.json(req.user);
   });
 
+  // /:id with id !== 'me'
+  router.get(/^\/(?!me)(.*)$/, serviceToRoute(userService.getUser));
+
   router.get('/me', serviceToRoute(userService.getCurrentUser));
 
   router.post('/logOut', async (req, res) => {
-    const serviceResult = await userService.logOut(req.body, req.user);
+    const serviceResult = await userService.logOut(req.body, {
+      user: req.user,
+    });
     req.logout();
     res.json(serviceResult);
   });

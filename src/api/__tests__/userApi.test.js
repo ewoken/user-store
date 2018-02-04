@@ -23,6 +23,11 @@ const getMe = () =>
     method: 'GET',
     cookie: true,
   });
+const getUser = id =>
+  fetchApi(`${baseUrl()}/users/${id}`, {
+    method: 'GET',
+    cookie: true,
+  });
 const logOut = () =>
   fetchApi(`${baseUrl()}/users/logOut`, {
     method: 'POST',
@@ -80,6 +85,16 @@ describe('user api', () => {
       await logIn(user);
       const loggedUser = await getMe();
       expect(loggedUser).toMatchObject({ email: user.email });
+    });
+  });
+
+  describe('GET /:id', () => {
+    test('should return the logged user', async () => {
+      await signUp(user);
+      const loggedUser = await logIn(user);
+      expect(loggedUser.id).toBeDefined();
+      const returnedUser = await getUser(loggedUser.id);
+      expect(returnedUser).toMatchObject({ email: loggedUser.email });
     });
   });
 

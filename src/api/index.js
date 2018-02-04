@@ -19,7 +19,7 @@ import {
 
 import buildUserApi from './userApi';
 
-function buildApi({ logger, redisClient }, { userService }) {
+function buildApi({ redisClient, logger }, { userService }) {
   const app = express();
   const RedisStore = configRedisStore(session);
   const sessionConfig = {
@@ -52,7 +52,7 @@ function buildApi({ logger, redisClient }, { userService }) {
       },
       (req, email, password, done) => {
         userService
-          .logIn({ email, password }, req.user)
+          .logIn({ email, password }, { user: req.user })
           .then(user => done(null, user))
           .catch(err => done(err));
       },

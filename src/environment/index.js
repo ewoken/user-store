@@ -1,6 +1,6 @@
 import config from 'config';
 
-import logger from './logger';
+import logger from '@ewoken/backend-common/lib/logger';
 import buildAMQPClient from './amqpClient';
 import buildSequelize from './sequelize';
 import buildRedisClient from './redisClient';

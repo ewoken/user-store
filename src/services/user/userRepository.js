@@ -13,9 +13,9 @@ function defineUserSchema(sequelize) {
       },
       email: { type: Sequelize.STRING, allowNull: false, unique: true },
       passwordHash: { type: Sequelize.STRING, allowNull: false },
-      createdAt: { type: Sequelize.DATE, allowNull: false },
-      updatedAt: { type: Sequelize.DATE, allowNull: false },
-      deletedAt: { type: Sequelize.DATE, allowNull: true },
+      createdAt: { type: Sequelize.DATE(6), allowNull: false },
+      updatedAt: { type: Sequelize.DATE(6), allowNull: false },
+      deletedAt: { type: Sequelize.DATE(6), allowNull: true },
     },
     {
       timestamps: true,
@@ -64,6 +64,11 @@ class UserRepository {
 
   async getUserByEmail(email) {
     const user = await this.User.scope(null).findOne({ where: { email } });
+    return user && user.toJSON();
+  }
+
+  async getUserById(id) {
+    const user = await this.User.findOne({ where: { id } });
     return user && user.toJSON();
   }
 
