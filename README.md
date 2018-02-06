@@ -3,7 +3,6 @@
 ## Description
 
 - server.js
-- app.js
 
 ## /api
 

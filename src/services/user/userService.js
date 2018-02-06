@@ -123,5 +123,7 @@ export default {
   logOut,
   getCurrentUser,
   getUser,
+
+  // test
   deleteAllUsers,
 };

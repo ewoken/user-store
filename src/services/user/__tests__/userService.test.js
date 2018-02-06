@@ -1,23 +1,34 @@
 /* global beforeAll afterAll describe test expect beforeEach */
+import { omit } from 'rambda';
+import { assertTest } from '@ewoken/backend-common/lib/assertSchema';
 
-import initUserService from '../index';
 import buildEnvironment from '../../../environment';
+import initUserService from '../index';
+import { signedUp, loggedIn, loggedOut } from '../events';
+import { User } from '../types';
+
+const f = omit(['createdAt']); // TODO
 
 let environment;
 let userService;
+let userServiceEvents;
 beforeAll(async () => {
   environment = await buildEnvironment();
   userService = await initUserService(environment);
+  userService.bus.on('event', event => {
+    userServiceEvents.push(event);
+  });
 });
 
 beforeEach(async () => {
+  userServiceEvents = [];
   // clean before each test because the last one may have failed
   await userService.deleteAllUsers();
 });
 
 afterAll(async () => {
   // clean after all to make environment clean
-  // await userService.deleteAllUsers();
+  await userService.deleteAllUsers();
   environment.close();
 });
 
@@ -31,15 +42,14 @@ describe('user service', () => {
       };
 
       const insertedUser = await userService.signUp(newUser, { user });
-      expect(insertedUser).toEqual(
-        expect.objectContaining({
-          id: expect.any(String),
-          email: newUser.email,
-          createdAt: expect.any(Date),
-          updatedAt: expect.any(Date),
-        }),
-      );
-      expect(insertedUser.passwordHash).toBe(undefined);
+      assertTest(User, insertedUser);
+      expect(insertedUser.email).toEqual(newUser.email);
+
+      const returnedUser = await userService.getUser(insertedUser.id, {
+        user: insertedUser,
+      });
+      expect(returnedUser).toEqual(insertedUser);
+      expect(userServiceEvents).toMatchObject([f(signedUp(insertedUser))]);
     });
 
     test('should fail for a bad user', async () => {
@@ -84,9 +94,13 @@ describe('user service', () => {
     beforeEach(() => userService.signUp(testUser, { user }));
 
     test('should log in a user with good credentials', async () => {
-      const result = await userService.logIn(testUser, { user });
-      expect(result).toMatchObject({ email: testUser.email });
-      expect(result.passwordHash).toBe(undefined);
+      const loggedUser = await userService.logIn(testUser, { user });
+      assertTest(User, loggedUser);
+      expect(loggedUser.email).toEqual(testUser.email);
+      expect(userServiceEvents).toMatchObject([
+        f(signedUp(loggedUser)),
+        f(loggedIn(loggedUser)),
+      ]);
     });
 
     test('should fail with bad email', async () => {
@@ -135,7 +149,6 @@ describe('user service', () => {
     });
 
     test('should return a user by id', async () => {
-      expect(user).toMatchObject({ email: user.email });
       const returnedUser = await userService.getUser(user.id, { user });
       expect(returnedUser).toEqual(user);
     });
@@ -160,6 +173,7 @@ describe('user service', () => {
     test('should return a status OK when logged', async () => {
       const status = await userService.logOut({}, { user });
       expect(status).toEqual({ logOut: true });
+      expect(userServiceEvents).toMatchObject([f(loggedOut(user))]);
     });
   });
 });

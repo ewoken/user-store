@@ -1,3 +1,4 @@
+import assert from 'assert';
 import Sequelize from 'sequelize';
 import ExtendableError from 'es6-error';
 
@@ -73,6 +74,7 @@ class UserRepository {
   }
 
   async deleteAllUsers() {
+    assert(process.env.NODE_ENV === 'test'); // TODO go to common
     return this.User.destroy({ force: true });
   }
 }

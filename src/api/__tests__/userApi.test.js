@@ -59,7 +59,7 @@ afterAll(async () => {
 });
 
 const user = {
-  email: 'plop@plop.com',
+  email: 'testApi@plop.com',
   password: 'helloworld',
 };
 

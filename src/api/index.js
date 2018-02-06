@@ -1,6 +1,5 @@
 import config from 'config';
 import express from 'express';
-import uuid from 'uuid';
 
 // middlewares
 import bodyParser from 'body-parser';
@@ -15,6 +14,7 @@ import configRedisStore from 'connect-redis';
 import {
   errorHandlerMiddleware,
   logRequestMiddleware,
+  addRequestId,
 } from '@ewoken/backend-common/lib/api/customMiddleWares';
 
 import buildUserApi from './userApi';
@@ -28,11 +28,7 @@ function buildApi({ redisClient, logger }, { userService }) {
     logErrors: error => logger.error(error),
   };
 
-  // TODO @common/customMiddleWares
-  app.use((req, res, next) => {
-    req.requestId = uuid();
-    next();
-  });
+  app.use(addRequestId());
   app.use(helmet());
   app.use(compression());
   app.use(cors());
