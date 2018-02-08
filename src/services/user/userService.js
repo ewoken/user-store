@@ -1,7 +1,7 @@
 import assert from 'assert';
 import { EventEmitter } from 'events';
 import bcrypt from 'bcrypt';
-import { pick } from 'rambda';
+import { pick } from 'ramda';
 
 import {
   assertInput,

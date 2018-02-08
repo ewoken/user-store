@@ -1,5 +1,5 @@
 /* global beforeAll afterAll describe test expect beforeEach */
-import { omit } from 'rambda';
+import { omit } from 'ramda';
 import { assertTest } from '@ewoken/backend-common/lib/assertSchema';
 
 import buildEnvironment from '../../../environment';
