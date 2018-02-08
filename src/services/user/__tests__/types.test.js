@@ -1,5 +1,5 @@
 /* global describe, test */
-import { assertInput } from '@ewoken/backend-common/lib/assertInput';
+import { assertInput } from '@ewoken/backend-common/lib/assertSchema';
 import { UserInput } from '../types';
 
 describe('userSchema', () => {

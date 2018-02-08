@@ -18,6 +18,9 @@ export const UserInput = Joi.object({
 export const User = Joi.object({
   id: UserId.required(),
   email: email.required(),
+  passwordHash: Joi.string()
+    .optional()
+    .strip(),
   createdAt: createdAt.required(),
   updatedAt: updatedAt.required(),
 });

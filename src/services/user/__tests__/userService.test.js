@@ -128,8 +128,8 @@ describe('user service', () => {
     const user = {
       id: '7e9e3554-5460-4d49-a91b-277311e9bc0b',
       email: 'plop@plop.com',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      createdAt: new Date(),
+      updatedAt: new Date(),
     };
 
     test('should return the logged user', async () => {
@@ -150,6 +150,7 @@ describe('user service', () => {
 
     test('should return a user by id', async () => {
       const returnedUser = await userService.getUser(user.id, { user });
+      expect(returnedUser.passwordHash).toBeUndefined();
       expect(returnedUser).toEqual(user);
     });
 

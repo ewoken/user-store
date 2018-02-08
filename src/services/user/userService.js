@@ -1,12 +1,12 @@
 import assert from 'assert';
 import { EventEmitter } from 'events';
 import bcrypt from 'bcrypt';
-import { pick } from 'ramda';
 
 import {
   assertInput,
   assertInternal,
-} from '@ewoken/backend-common/lib/assertInput';
+  format,
+} from '@ewoken/backend-common/lib/assertSchema';
 import { DomainError, only } from '@ewoken/backend-common/lib/errors';
 
 import { signedUp, loggedIn, loggedOut } from './events';
@@ -29,8 +29,6 @@ function assertLogged(user) {
   }
   throw new DomainError('You are not logged');
 }
-
-const formatUser = pick(['id', 'email', 'createdAt', 'updatedAt']);
 
 /**
  * Sign up a new user
@@ -55,7 +53,7 @@ async function signUp(newUser, { user }) {
     );
 
   bus.emit('event', signedUp(createdUser));
-  return formatUser(createdUser);
+  return format(User, createdUser);
 }
 
 /**
@@ -82,7 +80,7 @@ async function logIn(credentials, { user }) {
   }
 
   bus.emit('event', loggedIn(registeredUser));
-  return formatUser(registeredUser);
+  return format(User, registeredUser);
 }
 
 async function logOut(args, { user }) {
@@ -93,7 +91,7 @@ async function logOut(args, { user }) {
 
 async function getCurrentUser(args, { user }) {
   assertLogged(user);
-  return formatUser(user);
+  return format(User, user);
 }
 
 async function getUser(id, { user }) {
@@ -101,7 +99,7 @@ async function getUser(id, { user }) {
   assertLogged(user);
   if (user.id === id) {
     const returnedUser = await userRepository.getUserById(id);
-    return formatUser(returnedUser);
+    return format(User, returnedUser);
   }
   return null;
 }

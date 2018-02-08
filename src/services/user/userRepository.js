@@ -26,7 +26,8 @@ function defineUserSchema(sequelize) {
         where: {
           deletedAt: null,
         },
-        attributes: ['id', 'email', 'createdAt', 'updatedAt'],
+        // TODO passwordHash
+        attributes: ['id', 'email', 'passwordHash', 'createdAt', 'updatedAt'],
       },
     },
   );
@@ -64,7 +65,7 @@ class UserRepository {
   }
 
   async getUserByEmail(email) {
-    const user = await this.User.scope(null).findOne({ where: { email } });
+    const user = await this.User.findOne({ where: { email } });
     return user && user.toJSON();
   }
 
