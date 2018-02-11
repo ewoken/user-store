@@ -28,6 +28,12 @@ const getUser = id =>
     method: 'GET',
     cookie: true,
   });
+const updateUser = (id, updates) =>
+  fetchApi(`${baseUrl()}/users/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify(updates),
+    cookie: true,
+  });
 const logOut = () =>
   fetchApi(`${baseUrl()}/users/logOut`, {
     method: 'POST',
@@ -95,6 +101,21 @@ describe('user api', () => {
       expect(loggedUser.id).toBeDefined();
       const returnedUser = await getUser(loggedUser.id);
       expect(returnedUser).toMatchObject({ email: loggedUser.email });
+    });
+  });
+
+  describe('PATCH /:id', () => {
+    test('should update user', async () => {
+      await signUp(user);
+      const loggedUser = await logIn(user);
+      expect(loggedUser).toMatchObject({ email: user.email });
+      const password = 'ploplop';
+      await updateUser(loggedUser.id, {
+        formerPassword: user.password,
+        password,
+      });
+      await logOut();
+      await logIn({ ...user, password });
     });
   });
 

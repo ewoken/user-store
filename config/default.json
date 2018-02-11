@@ -1,6 +1,6 @@
 {
   "server": {
-    "port": 3000
+    "port": 3001
   },
   "mysql": {
     "url": "mysql://root:root@localhost:8889/user-store"
@@ -9,7 +9,7 @@
     "url": "amqp://localhost:5672"
   },
   "redis": {
-    "url": "redis://localhost:6379"
+    "url": "redis://localhost:7777"
   },
   "bus": {
     "eventExchange": "eventExchange",

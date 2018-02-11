@@ -4,7 +4,7 @@ import { assertTest } from '@ewoken/backend-common/lib/assertSchema';
 
 import buildEnvironment from '../../../environment';
 import initUserService from '../index';
-import { signedUp, loggedIn, loggedOut } from '../events';
+import { signedUp, loggedIn, loggedOut, updated } from '../events';
 import { User } from '../types';
 
 const f = omit(['createdAt']); // TODO
@@ -49,7 +49,7 @@ describe('user service', () => {
         user: insertedUser,
       });
       expect(returnedUser).toEqual(insertedUser);
-      expect(userServiceEvents).toMatchObject([f(signedUp(insertedUser))]);
+      expect(userServiceEvents).toMatchObject([signedUp(insertedUser)]);
     });
 
     test('should fail for a bad user', async () => {
@@ -154,12 +154,67 @@ describe('user service', () => {
       expect(returnedUser).toEqual(user);
     });
 
-    test('should return null when not authorized', async () => {
+    test('should return null when it not exists', async () => {
       const returnedUser = await userService.getUser(
         '7e9e3554-5460-4d49-a91b-277311e9bc0b',
         { user },
       );
       expect(returnedUser).toBe(null);
+    });
+
+    test('should return null when it is not authorized', async () => {
+      const returnedUser = await userService.getUser(
+        '7e9e3554-5460-4d49-a91b-277311e9bc0b',
+        { user },
+      );
+      expect(returnedUser).toBe(null);
+    });
+  });
+
+  describe('update(userUpdate, { user })', () => {
+    const credentials = {
+      email: 'plop@plop.com',
+      password: 'helloworld',
+    };
+    let user;
+    beforeEach(async () => {
+      user = await userService.signUp(credentials, { user: null });
+    });
+
+    test('should update user informations', async () => {
+      const password = 'plopaaaaaaa';
+      const returnedUser = await userService.updateUser(
+        {
+          id: user.id,
+          formerPassword: credentials.password,
+          password,
+        },
+        { user },
+      );
+      const loggedUser = await userService.logIn(
+        { email: credentials.email, password },
+        { user: null },
+      );
+      const updates = { passwordHash: expect.any(String) };
+      expect(loggedUser).toEqual(returnedUser);
+      expect(userServiceEvents).toMatchObject([
+        f(signedUp(user)),
+        f(updated(returnedUser, updates)),
+        f(loggedIn(loggedUser)),
+      ]);
+    });
+
+    test('should fail when former password is wrong', async () => {
+      await expect(
+        userService.updateUser(
+          {
+            id: user.id,
+            formerPassword: 'plop',
+            password: 'plop',
+          },
+          { user },
+        ),
+      ).rejects.toThrow(/password/);
     });
   });
 

@@ -8,7 +8,9 @@ describe('userSchema', () => {
     password: 'ploploploploploploploplop',
   };
 
-  test('should validate an event object', () => {
+  test('should validate an user input object', () => {
     assertInput(UserInput, user);
   });
+
+  // TODO add tests of other types
 });

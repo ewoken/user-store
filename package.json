@@ -67,7 +67,7 @@
     "poststart": "pm2 logs --raw",
     "stop": "pm2 stop all",
     "start:dev": "npm run build && node build/server.js",
-    "test": "jest /src",
+    "test": "jest /src --runInBand --verbose",
     "build": "babel src/ -d build",
     "watch": "nodemon --watch src --exec npm run start:dev",
     "build-container": "npm run build && docker build -t user-store .",

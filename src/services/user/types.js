@@ -29,3 +29,9 @@ export const Credentials = Joi.object({
   email: email.required(),
   password: password.required(),
 });
+
+export const UserUpdate = Joi.object({
+  id: UserId.required(),
+  password: password.required(),
+  formerPassword: password.required(),
+});
