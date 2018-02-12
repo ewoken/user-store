@@ -11,7 +11,7 @@ async function buildBusInterface({ amqpClient, logger }, { userService }) {
 
   eventDispatcher.init();
 
-  userService.bus.on('event', event => eventDispatcher.dispatch(event));
+  userService.onEvent(event => eventDispatcher.dispatch(event));
 }
 
 export default buildBusInterface;

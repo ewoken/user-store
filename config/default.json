@@ -9,7 +9,7 @@
     "url": "amqp://localhost:5672"
   },
   "redis": {
-    "url": "redis://localhost:7777"
+    "url": "redis://localhost:6379"
   },
   "bus": {
     "eventExchange": "eventExchange",

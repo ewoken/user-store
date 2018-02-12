@@ -48,14 +48,12 @@ export class ExistingEmailError extends ExtendableError {
 }
 
 class UserRepository {
-  constructor() {
-    this.sequelize = null;
-    this.eventCollection = null;
-  }
-
-  async init(sequelize) {
+  constructor({ sequelize }) {
     this.sequelize = sequelize;
     this.User = defineUserSchema(sequelize);
+  }
+
+  async init() {
     await this.User.sync();
     return this;
   }
@@ -114,4 +112,4 @@ class UserRepository {
   }
 }
 
-export default new UserRepository();
+export default UserRepository;
