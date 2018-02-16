@@ -3,6 +3,7 @@ import Joi from 'joi';
 export const UserId = Joi.string();
 const email = Joi.string()
   .email()
+  .trim()
   .max(255);
 const password = Joi.string()
   .min(5)

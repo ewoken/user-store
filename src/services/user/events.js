@@ -11,7 +11,7 @@ function userEvent(eventType) {
     entityType: USER,
     entityId: user.id,
     type: eventType,
-    userId: user.id,
+    authorUserId: user.id,
     createdAt: new Date(),
     payload,
   });
@@ -20,7 +20,7 @@ function userEvent(eventType) {
 export const signedUp = user => ({
   ...userEvent(SIGNED_UP)(user),
   createdAt: user.createdAt,
-  payload: omit(['createdAt', 'updatedAt'])(user),
+  payload: omit(['id', 'createdAt', 'updatedAt'])(user),
 });
 export const loggedIn = userEvent(LOGGED_IN);
 export const loggedOut = userEvent(LOGGED_OUT);

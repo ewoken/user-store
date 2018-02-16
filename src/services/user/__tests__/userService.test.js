@@ -3,7 +3,7 @@ import { omit } from 'ramda';
 import { assertTest } from '@ewoken/backend-common/lib/assertSchema';
 
 import buildEnvironment from '../../../environment';
-import initUserService from '../index';
+import UserService from '../index';
 import { signedUp, loggedIn, loggedOut, updated } from '../events';
 import { User } from '../types';
 
@@ -14,7 +14,8 @@ let userService;
 let userServiceEvents;
 beforeAll(async () => {
   environment = await buildEnvironment();
-  userService = await initUserService(environment);
+  userService = new UserService(environment);
+  await userService.init();
   userService.bus.on('event', event => {
     userServiceEvents.push(event);
   });
@@ -32,16 +33,16 @@ afterAll(async () => {
   environment.close();
 });
 
-describe('user service', () => {
-  describe('signUp(newUser, { user })', () => {
-    const user = null;
+describe('userService', () => {
+  describe('.signUp(newUser, context)', () => {
+    const context = { user: null };
     test('should sign up an user', async () => {
       const newUser = {
         email: 'plop@plop.com',
         password: 'ploploploploploploploplop',
       };
 
-      const insertedUser = await userService.signUp(newUser, { user });
+      const insertedUser = await userService.signUp(newUser, context);
       assertTest(User, insertedUser);
       expect(insertedUser.email).toEqual(newUser.email);
 
@@ -57,7 +58,7 @@ describe('user service', () => {
         email: 'plop@plop.com',
         password: '',
       };
-      await expect(userService.signUp(badUser, { user })).rejects.toThrow(
+      await expect(userService.signUp(badUser, context)).rejects.toThrow(
         /password/,
       );
     });
@@ -67,8 +68,8 @@ describe('user service', () => {
         email: 'plop@plop.com',
         password: 'helloworld',
       };
-      await userService.signUp(newUser, { user });
-      await expect(userService.signUp(newUser, { user })).rejects.toThrow(
+      await userService.signUp(newUser, context);
+      await expect(userService.signUp(newUser, context)).rejects.toThrow(
         /plop@plop.com/,
       );
     });
@@ -78,23 +79,24 @@ describe('user service', () => {
         email: 'plop@plop.com',
         password: 'helloworld',
       };
-      await expect(
-        userService.signUp(newUser, { user: newUser }),
-      ).rejects.toThrow(/logged/);
+      const context2 = { user: newUser };
+      await expect(userService.signUp(newUser, context2)).rejects.toThrow(
+        /logged/,
+      );
     });
   });
 
-  describe('logIn(credentials, { user })', () => {
+  describe('.logIn(credentials, context)', () => {
     const testUser = {
       email: 'plop@plop.com',
       password: 'azertyuiop',
     };
-    const user = null;
+    const context = { user: null };
 
-    beforeEach(() => userService.signUp(testUser, { user }));
+    beforeEach(() => userService.signUp(testUser, context));
 
     test('should log in a user with good credentials', async () => {
-      const loggedUser = await userService.logIn(testUser, { user });
+      const loggedUser = await userService.logIn(testUser, context);
       assertTest(User, loggedUser);
       expect(loggedUser.email).toEqual(testUser.email);
       expect(userServiceEvents).toMatchObject([
@@ -105,51 +107,56 @@ describe('user service', () => {
 
     test('should fail with bad email', async () => {
       const credentials = { email: 'plopp@plop.com', password: 'azertyuiop' };
-      await expect(userService.logIn(credentials, { user })).rejects.toThrow(
+      await expect(userService.logIn(credentials, context)).rejects.toThrow(
         /Bad credentials/,
       );
     });
 
     test('should fail with bad password', async () => {
       const credentials = { email: 'plop@plop.com', password: 'azertyuiopm' };
-      await expect(userService.logIn(credentials, { user })).rejects.toThrow(
+      await expect(userService.logIn(credentials, context)).rejects.toThrow(
         /Bad credentials/,
       );
     });
 
     test('should fail if logged', async () => {
-      await expect(
-        userService.logIn(testUser, { user: testUser }),
-      ).rejects.toThrow(/logged/);
+      const context2 = { user: testUser };
+      await expect(userService.logIn(testUser, context2)).rejects.toThrow(
+        /logged/,
+      );
     });
   });
 
-  describe('getCurrentUser(args, { user })', () => {
+  describe('.getCurrentUser(args, context)', () => {
     const user = {
       id: '7e9e3554-5460-4d49-a91b-277311e9bc0b',
       email: 'plop@plop.com',
       createdAt: new Date(),
       updatedAt: new Date(),
     };
+    const context = { user };
 
     test('should return the logged user', async () => {
-      const loggedUser = await userService.getCurrentUser({}, { user });
+      const loggedUser = await userService.getCurrentUser({}, context);
       expect(loggedUser).toEqual(user);
     });
   });
 
-  describe('getUser(id, { user })', async () => {
+  describe('.getUser(id, context)', async () => {
     const newUser = {
       email: 'plop@plop.com',
       password: 'helloworld',
     };
+    const context = { user: null };
     let user;
     beforeEach(async () => {
-      user = await userService.signUp(newUser, { user: null });
+      context.user = null;
+      user = await userService.signUp(newUser, context);
+      context.user = user;
     });
 
     test('should return a user by id', async () => {
-      const returnedUser = await userService.getUser(user.id, { user });
+      const returnedUser = await userService.getUser(user.id, context);
       expect(returnedUser.passwordHash).toBeUndefined();
       expect(returnedUser).toEqual(user);
     });
@@ -157,7 +164,7 @@ describe('user service', () => {
     test('should return null when it not exists', async () => {
       const returnedUser = await userService.getUser(
         '7e9e3554-5460-4d49-a91b-277311e9bc0b',
-        { user },
+        context,
       );
       expect(returnedUser).toBe(null);
     });
@@ -165,20 +172,23 @@ describe('user service', () => {
     test('should return null when it is not authorized', async () => {
       const returnedUser = await userService.getUser(
         '7e9e3554-5460-4d49-a91b-277311e9bc0b',
-        { user },
+        context,
       );
       expect(returnedUser).toBe(null);
     });
   });
 
-  describe('update(userUpdate, { user })', () => {
+  describe('.update(userUpdate, context)', () => {
     const credentials = {
       email: 'plop@plop.com',
       password: 'helloworld',
     };
+    const context = { user: null };
     let user;
     beforeEach(async () => {
-      user = await userService.signUp(credentials, { user: null });
+      context.user = null;
+      user = await userService.signUp(credentials, context);
+      context.user = user;
     });
 
     test('should update user informations', async () => {
@@ -189,7 +199,7 @@ describe('user service', () => {
           formerPassword: credentials.password,
           password,
         },
-        { user },
+        context,
       );
       const loggedUser = await userService.logIn(
         { email: credentials.email, password },
@@ -212,22 +222,23 @@ describe('user service', () => {
             formerPassword: 'plop',
             password: 'plop',
           },
-          { user },
+          context,
         ),
       ).rejects.toThrow(/password/);
     });
   });
 
-  describe('logOut(args, { user })', () => {
+  describe('.logOut(args, context)', () => {
     const user = {
       id: '7e9e3554-5460-4d49-a91b-277311e9bc0b',
       email: 'plop@plop.com',
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
+    const context = { user };
 
     test('should return a status OK when logged', async () => {
-      const status = await userService.logOut({}, { user });
+      const status = await userService.logOut({}, context);
       expect(status).toEqual({ logOut: true });
       expect(userServiceEvents).toMatchObject([f(loggedOut(user))]);
     });

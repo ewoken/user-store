@@ -1,32 +1,15 @@
 import assert from 'assert';
 import bcrypt from 'bcrypt';
 
-import {
-  assertInput,
-  assertInternal,
-  format,
-} from '@ewoken/backend-common/lib/assertSchema';
+import { assertInput, format } from '@ewoken/backend-common/lib/assertSchema';
 import { DomainError, only } from '@ewoken/backend-common/lib/errors';
 import Service from '@ewoken/backend-common/lib/Service';
+
+import { assertLogged, assertNotLogged } from '../../utils/authorizations';
 
 import { signedUp, loggedIn, loggedOut, updated } from './events';
 import { UserId, UserInput, Credentials, User, UserUpdate } from './types';
 import UserRepository, { ExistingEmailError } from './UserRepository';
-
-function assertNotLogged(user) {
-  // TODO @common
-  if (user) {
-    throw new DomainError(`You are logged as ${user.email}`, { email: user });
-  }
-}
-function assertLogged(user) {
-  // TODO @common
-  if (user) {
-    assertInternal(User, user);
-    return;
-  }
-  throw new DomainError('You are not logged');
-}
 
 function hashPassword(password) {
   return bcrypt.hash(password, 10);
@@ -53,8 +36,8 @@ class UserService extends Service {
    * @param  {User} user    current logged user
    * @return {User}         created user
    */
-  async signUp(newUser, { user }) {
-    assertNotLogged(user);
+  async signUp(newUser, context) {
+    assertNotLogged(context);
     assertInput(UserInput, newUser);
 
     const passwordHash = await hashPassword(newUser.password);
@@ -79,8 +62,8 @@ class UserService extends Service {
    * @param  {User} user        current logged user
    * @return {Object}             logged user
    */
-  async logIn(credentials, { user }) {
-    assertNotLogged(user);
+  async logIn(credentials, context) {
+    assertNotLogged(context);
     assertInput(Credentials, credentials);
     const { email, password } = credentials;
     const registeredUser = await this.userRepository.getUserByEmail(email, {
@@ -102,16 +85,16 @@ class UserService extends Service {
     return format(User, registeredUser);
   }
 
-  async logOut(args, { user }) {
-    assertLogged(user);
-    this.dispatch(loggedOut(user));
+  async logOut(args, context) {
+    assertLogged(context);
+    this.dispatch(loggedOut(context.user));
     return Promise.resolve({ logOut: true });
   }
 
-  async updateUser(userUpdate, { user }) {
+  async updateUser(userUpdate, context) {
     assertInput(UserUpdate, userUpdate);
-    assertLogged(user);
-    if (userUpdate.id !== user.id) {
+    assertLogged(context);
+    if (userUpdate.id !== context.user.id) {
       throw new DomainError('Not authorized');
     }
     const {
@@ -153,15 +136,15 @@ class UserService extends Service {
   }
 
   // eslint-disable-next-line class-methods-use-this
-  async getCurrentUser(args, { user }) {
-    assertLogged(user);
-    return format(User, user);
+  async getCurrentUser(args, context) {
+    assertLogged(context);
+    return format(User, context.user);
   }
 
-  async getUser(id, { user }) {
+  async getUser(id, context) {
     assertInput(UserId, id);
-    assertLogged(user);
-    if (user.id === id) {
+    assertLogged(context);
+    if (context.user.id === id) {
       const returnedUser = await this.userRepository.getUserById(id);
       return format(User, returnedUser);
     }
@@ -178,11 +161,4 @@ class UserService extends Service {
   }
 }
 
-async function initUserService(environment) {
-  const userService = new UserService(environment);
-  await userService.init();
-
-  return userService;
-}
-
-export default initUserService;
+export default UserService;

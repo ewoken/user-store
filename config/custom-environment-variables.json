@@ -1,22 +1,24 @@
 {
-  "server": {
-    "port": "SERVER_PORT"
-  },
-  "mysql": {
-    "url": "MYSQL_URL"
-  },
-  "rabbitmq": {
-    "url": "RABBITMQ_URL"
-  },
-  "redis": {
-    "url": "REDIS_URL"
-  },
-  "bus": {
-    "eventExchange": "EVENT_EXCHANGE"
-  },
   "api": {
     "session": {
       "secret": "API_SESSION_SECRET"
     }
+  },
+  "bus": {
+    "eventExchange": "BUS_EVENT_EXCHANGE"
+  },
+  "environment": {
+    "mysql": {
+      "url": "MYSQL_URL"
+    },
+    "rabbitmq": {
+      "url": "RABBITMQ_URL"
+    },
+    "redis": {
+      "url": "REDIS_URL"
+    }
+  },
+  "server": {
+    "port": "SERVER_PORT"
   }
 }

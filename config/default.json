@@ -1,20 +1,4 @@
 {
-  "server": {
-    "port": 3001
-  },
-  "mysql": {
-    "url": "mysql://root:root@localhost:8889/user-store"
-  },
-  "rabbitmq": {
-    "url": "amqp://localhost:5672"
-  },
-  "redis": {
-    "url": "redis://localhost:6379"
-  },
-  "bus": {
-    "eventExchange": "eventExchange",
-    "eventQueue": "eventQueue"
-  },
   "api": {
     "session": {
       "name": "sessionId",
@@ -22,5 +6,30 @@
       "resave": false,
       "saveUninitialized": false
     }
+  },
+  "bus": {
+    "eventExchange": "eventExchange",
+    "eventQueue": "eventQueue"
+  },
+  "environment": {
+    "mailer": {
+      "options": {
+        "port": 1025,
+        "ignoreTLS": true
+      },
+      "defaults": {}
+    },
+    "mysql": {
+      "url": "mysql://root:root@localhost:8889/user-store"
+    },
+    "rabbitmq": {
+      "url": "amqp://localhost:5672"
+    },
+    "redis": {
+      "url": "redis://localhost:7777"
+    }
+  },
+  "server": {
+    "port": 3001
   }
 }
