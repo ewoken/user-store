@@ -1,4 +1,3 @@
-/* global beforeAll afterAll describe test expect beforeEach */
 import config from 'config';
 import { omit } from 'ramda';
 import MailDev from 'maildev';

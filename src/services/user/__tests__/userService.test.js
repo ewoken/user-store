@@ -1,4 +1,3 @@
-/* global beforeAll afterAll describe test expect beforeEach */
 import { omit } from 'ramda';
 import { assertTest } from '@ewoken/backend-common/lib/assertSchema';
 

@@ -1,4 +1,3 @@
-/* global describe, test, expect */
 import { assertInput } from '@ewoken/backend-common/lib/assertSchema';
 import { AddressObject, EmailAddressList, EmailMessageInput } from '../types';
 

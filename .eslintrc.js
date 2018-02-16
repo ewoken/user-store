@@ -12,4 +12,7 @@ module.exports = {
     'prettier/prettier': ['error', prettierOptions],
     'flowtype/define-flow-type': 1,
   },
+  env: {
+    jest: true,
+  },
 };

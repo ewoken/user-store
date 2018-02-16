@@ -1,4 +1,3 @@
-/* global beforeAll, afterAll, beforeEach, describe, test, expect */
 import fetchApi, { clearCookies } from '@ewoken/backend-common/lib/fetchApi';
 import getBaseUrl from '@ewoken/backend-common/lib/getBaseUrl';
 
