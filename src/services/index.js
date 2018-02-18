@@ -9,8 +9,7 @@ async function initServices(environment) {
   };
 
   const serviceList = values(services);
-  // TODO inject services ⚠️ logger circular references
-  await Promise.all(serviceList.map(service => service.init()));
+  await Promise.all(serviceList.map(service => service.init(services)));
 
   return services;
 }

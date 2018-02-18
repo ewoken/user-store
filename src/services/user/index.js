@@ -9,7 +9,7 @@ import { assertLogged, assertNotLogged } from '../../utils/authorizations';
 
 import { signedUp, loggedIn, loggedOut, updated } from './events';
 import { UserId, UserInput, Credentials, User, UserUpdate } from './types';
-import UserRepository, { ExistingEmailError } from './UserRepository';
+import UserRepository, { ExistingEmailError } from './userRepository';
 
 function hashPassword(password) {
   return bcrypt.hash(password, 10);
