@@ -8,6 +8,7 @@ import compression from 'compression';
 import helmet from 'helmet';
 import passport from 'passport';
 import passportLocal from 'passport-local';
+import passportHttpBearer from 'passport-http-bearer';
 import session from 'express-session';
 import configRedisStore from 'connect-redis';
 
@@ -39,6 +40,7 @@ function buildApi({ redisClient, logger }, { userService }) {
   app.use(passport.session());
 
   const LocalStrategy = passportLocal.Strategy;
+  const BearerStrategy = passportHttpBearer.Strategy;
   passport.use(
     new LocalStrategy(
       {
@@ -53,6 +55,14 @@ function buildApi({ redisClient, logger }, { userService }) {
           .catch(err => done(err));
       },
     ),
+  );
+  passport.use(
+    new BearerStrategy({ passReqToCallback: true }, (req, token, done) => {
+      userService
+        .logInWithToken(token, { user: req.user })
+        .then(user => done(null, user))
+        .catch(err => done(err));
+    }),
   );
 
   passport.serializeUser((user, cb) => {

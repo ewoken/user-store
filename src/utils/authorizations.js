@@ -1,5 +1,9 @@
 import { DomainError } from '@ewoken/backend-common/lib/errors';
 
+export function isLogged(context) {
+  return !!context.user;
+}
+
 // TODO @common
 export function assertNotLogged(context) {
   const { user } = context;

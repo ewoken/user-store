@@ -17,6 +17,14 @@ const logIn = credentials =>
     body: JSON.stringify(credentials),
     cookie: true,
   });
+const logInWithToken = token =>
+  fetchApi(`${baseUrl()}/users/logInWithToken`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    cookie: true,
+  });
 const getMe = () =>
   fetchApi(`${baseUrl()}/users/me`, {
     method: 'GET',
@@ -43,6 +51,12 @@ const deleteAllUsers = () =>
     method: 'DELETE',
     cookie: true,
   });
+const generateAuthToken = userId =>
+  fetchApi(`${baseUrl()}/users/generateToken/${userId}`, {
+    method: 'POST',
+    cookie: true,
+  });
+
 const clearSession = () => clearCookies('localhost');
 
 beforeAll(async () => {
@@ -81,6 +95,16 @@ describe('user api', () => {
       await signUp(user);
       const loggedUser = await logIn(user);
       expect(loggedUser).toMatchObject({ email: user.email });
+    });
+  });
+
+  describe('POST /logInWithToken', () => {
+    test('should log in a user with a token', async () => {
+      const newUser = await signUp(user);
+      const token = await generateAuthToken(newUser.id);
+      await clearSession();
+      const loggedUser = await logInWithToken(token);
+      expect(loggedUser).toEqual(newUser);
     });
   });
 

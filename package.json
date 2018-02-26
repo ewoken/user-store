@@ -22,16 +22,20 @@
     "i18next": "^10.3.0",
     "i18next-node-fs-backend": "^1.0.0",
     "joi": "^13.1.0",
+    "jsonwebtoken": "^8.1.1",
+    "luxon": "^0.5.2",
     "mysql2": "^1.5.1",
     "nodemailer": "^4.4.2",
     "nodemon": "^1.12.1",
     "passport": "^0.4.0",
+    "passport-http-bearer": "^1.0.1",
     "passport-local": "^1.0.0",
     "pm2": "^2.9.1",
     "ramda": "^0.25.0",
     "redis": "^2.8.0",
     "sequelize": "^4.31.2",
     "server-destroy": "^1.0.1",
+    "uid-safe": "^2.1.5",
     "uuid": "^3.2.1"
   },
   "devDependencies": {
@@ -53,6 +57,7 @@
     "jest": "^22.0.4",
     "lint-staged": "^6.1.0",
     "maildev": "^1.0.0-rc3",
+    "mockdate": "^2.0.2",
     "prettier": "1.10.2"
   },
   "lint-staged": {

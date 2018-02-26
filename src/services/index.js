@@ -1,11 +1,15 @@
 import { values } from 'ramda';
 
 import UserService from './user';
+import TokenService from './token';
+import EmailService from './email';
 
 async function initServices(environment) {
   environment.logger.info('Init services...');
   const services = {
     userService: new UserService(environment),
+    tokenService: new TokenService(environment),
+    emailService: new EmailService(environment),
   };
 
   const serviceList = values(services);

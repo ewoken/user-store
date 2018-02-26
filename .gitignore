@@ -2,3 +2,5 @@ build/
 node_modules/
 *.rdb
 config/local.json
+.DS_Store
+flow-typed/

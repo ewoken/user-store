@@ -1,15 +1,20 @@
 import assert from 'assert';
 import bcrypt from 'bcrypt';
+import { DateTime } from 'luxon';
 
 import { assertInput, format } from '@ewoken/backend-common/lib/assertSchema';
 import { DomainError, only } from '@ewoken/backend-common/lib/errors';
 import Service from '@ewoken/backend-common/lib/Service';
 
-import { assertLogged, assertNotLogged } from '../../utils/authorizations';
+import {
+  assertLogged,
+  assertNotLogged,
+  isLogged,
+} from '../../utils/authorizations';
 
 import { signedUp, loggedIn, loggedOut, updated } from './events';
 import { UserId, UserInput, Credentials, User, UserUpdate } from './types';
-import UserRepository, { ExistingEmailError } from './userRepository';
+import UserRepository, { ExistingEmailError } from './UserRepository';
 
 function hashPassword(password) {
   return bcrypt.hash(password, 10);
@@ -19,13 +24,19 @@ function checkPassword(password, passwordHash) {
   return bcrypt.compare(password, passwordHash);
 }
 
+const AUTH_TOKEN_TYPE = 'AUTH_TOKEN_TYPE';
+
 class UserService extends Service {
   constructor(environment) {
     super('UserService', environment);
     this.userRepository = new UserRepository(environment);
+    this.emailService = null;
+    this.tokenService = null;
   }
 
-  async init() {
+  async init({ emailService, tokenService }) {
+    this.emailService = emailService;
+    this.tokenService = tokenService;
     await this.userRepository.init();
     return this;
   }
@@ -81,8 +92,25 @@ class UserService extends Service {
       throw new DomainError('Bad credentials', { email });
     }
 
-    this.bus.emit('event', loggedIn(registeredUser));
+    this.dispatch(loggedIn(registeredUser));
     return format(User, registeredUser);
+  }
+
+  async logInWithToken(token, context) {
+    if (isLogged(context)) {
+      return this.getCurrentUser(null, context);
+    }
+
+    const tokenObject = await this.tokenService.consumeToken(
+      { token, expectedType: AUTH_TOKEN_TYPE },
+      context,
+    );
+    const loggedUser = await this.userRepository.getUserById(
+      tokenObject.userId,
+    );
+
+    this.dispatch(loggedIn(loggedUser));
+    return format(User, loggedUser);
   }
 
   async logOut(args, context) {
@@ -150,6 +178,25 @@ class UserService extends Service {
     }
     return null;
   }
+
+  async generateAuthToken(userId, context) {
+    // TODO authorizations
+    const token = await this.tokenService.createToken(
+      {
+        userId,
+        type: AUTH_TOKEN_TYPE,
+        expiredAt: DateTime.local()
+          .plus({ days: 1 })
+          .toJSDate(),
+      },
+      context,
+    );
+    return token;
+  }
+  // async validateEmail(token, context) {}
+  // async sendEmailValidation(user, context) {}
+  // async sendResetPasswordEmail(userId, context) {}
+  // async resetPassword(input, context) {}
 
   /**
    * delete all users (for test)

@@ -29,7 +29,12 @@
       "url": "redis://localhost:7777"
     }
   },
+  "services": {
+    "tokenService": {
+      "secret": "plop"
+    }
+  },
   "server": {
-    "port": 3001
+    "port": 5001
   }
 }

@@ -3,6 +3,8 @@ import { assertTest } from '@ewoken/backend-common/lib/assertSchema';
 
 import buildEnvironment from '../../../environment';
 import UserService from '../index';
+import TokenService from '../../token';
+import EmailService from '../../email';
 import { signedUp, loggedIn, loggedOut, updated } from '../events';
 import { User } from '../types';
 
@@ -14,8 +16,12 @@ let userServiceEvents;
 beforeAll(async () => {
   environment = await buildEnvironment();
   userService = new UserService(environment);
-  await userService.init();
-  userService.bus.on('event', event => {
+  const services = {
+    emailService: new EmailService(environment),
+    tokenService: new TokenService(environment),
+  };
+  await userService.init(services);
+  userService.onEvent(event => {
     userServiceEvents.push(event);
   });
 });
@@ -123,6 +129,25 @@ describe('userService', () => {
       await expect(userService.logIn(testUser, context2)).rejects.toThrow(
         /logged/,
       );
+    });
+  });
+
+  describe.only('.logInWithToken(token, context)', () => {
+    const credentials = { email: 'plop@plop.com', password: 'azertyuiop' };
+    const context = { user: null };
+    let currentUser;
+
+    beforeEach(async () => {
+      currentUser = await userService.signUp(credentials, context);
+    });
+
+    test('should log in with a valid auth token', async () => {
+      const token = await userService.generateAuthToken(
+        currentUser.id,
+        context,
+      );
+      const loggedUser = await userService.logInWithToken(token, context);
+      expect(loggedUser.id).toEqual(currentUser.id);
     });
   });
 
