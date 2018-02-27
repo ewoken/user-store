@@ -1,6 +1,8 @@
 build/
-node_modules/
-*.rdb
-config/local.json
-.DS_Store
+coverage/
 flow-typed/
+node_modules/
+
+*.rdb
+.DS_Store
+config/local.json

@@ -98,6 +98,7 @@ class UserService extends Service {
 
   async logInWithToken(token, context) {
     if (isLogged(context)) {
+      await this.tokenService.deleteToken(token);
       return this.getCurrentUser(null, context);
     }
 
@@ -203,7 +204,7 @@ class UserService extends Service {
    * @return {Promise}
    */
   deleteAllUsers() {
-    assert(process.env.NODE_ENV === 'test'); // TODO @common
+    assert(process.env.NODE_ENV === 'test');
     return this.userRepository.deleteAllUsers();
   }
 }

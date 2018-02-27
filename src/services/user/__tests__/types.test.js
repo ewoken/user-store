@@ -10,6 +10,4 @@ describe('userSchema', () => {
   test('should validate an user input object', () => {
     assertInput(UserInput, user);
   });
-
-  // TODO add tests of other types
 });

@@ -9,6 +9,7 @@ import mailer from './mailer';
 
 async function buildEnvironment() {
   logger.info('Building environment...');
+  // TODO make parallel
   const amqpClient = await buildAMQPClient({
     url: config.get('environment.rabbitmq.url'),
     logger,

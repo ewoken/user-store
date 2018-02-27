@@ -107,7 +107,7 @@ class UserRepository {
   }
 
   async deleteAllUsers() {
-    assert(process.env.NODE_ENV === 'test'); // TODO go to common
+    assert(process.env.NODE_ENV === 'test');
     return this.User.destroy({ force: true });
   }
 }

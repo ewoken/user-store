@@ -1,6 +1,5 @@
 import assert from 'assert';
 import Sequelize from 'sequelize';
-import ExtendableError from 'es6-error';
 import safeUid from 'uid-safe';
 
 import { TOKEN_LENGTH } from './types';
@@ -33,13 +32,6 @@ function defineUserSchema(sequelize) {
   );
 }
 
-export class UnknownToken extends ExtendableError {
-  constructor(tokenId) {
-    super(`The token ${tokenId} does not exist !`);
-    this.tokenId = tokenId;
-  }
-}
-
 class TokenRepository {
   constructor({ sequelize }) {
     this.sequelize = sequelize;
@@ -60,12 +52,12 @@ class TokenRepository {
     return createdToken.toJSON();
   }
 
-  async getToken(tokenId, { transaction }) {
+  async getToken(tokenId, { transaction } = {}) {
     const token = await this.Token.findById(tokenId, { transaction });
     return token && token.toJSON();
   }
 
-  async deleteToken(tokenId, { transaction }) {
+  async deleteToken(tokenId, { transaction } = {}) {
     return this.Token.destroy({ transaction, where: { id: tokenId } });
   }
 

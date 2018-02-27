@@ -10,7 +10,7 @@ import {
   assertInternal,
   format,
 } from '@ewoken/backend-common/lib/assertSchema';
-import { DomainError } from '@ewoken/backend-common/lib/errors';
+import { DomainError, only } from '@ewoken/backend-common/lib/errors';
 
 import TokenRepository from './TokenRepository';
 
@@ -37,7 +37,9 @@ function unsignToken(signedToken) {
     token = jwt.verify(signedToken, secret);
   } catch (e) {
     if (e.name === 'JsonWebTokenError') {
-      throw new DomainError('Bad signed token', { token: signedToken });
+      throw new DomainError('Invalid or expired token', {
+        token: signedToken,
+      });
     } else {
       throw e;
     }
@@ -81,7 +83,7 @@ class TokenService extends Service {
     const tokenId = unsignedToken.id;
 
     if (unsignedToken.type !== expectedType) {
-      throw new DomainError('Bad token type');
+      throw new DomainError('Invalid or expired token');
     }
 
     const consumedToken = await this.tokenRepository.withinTransaction(
@@ -106,13 +108,23 @@ class TokenService extends Service {
     return consumedToken;
   }
 
+  async deleteToken(token) {
+    try {
+      const unsignedToken = unsignToken(token);
+      const tokenId = unsignedToken.id;
+      await this.tokenRepository.deleteToken(tokenId);
+    } catch (e) {
+      only(DomainError, () => {})(e);
+    }
+  }
+
   async deleteAllExpiredTokens() {
     const deletedCount = await this.tokenRepository.deleteAllExpiredTokens();
     return deletedCount;
   }
 
   async deleteAllTokens() {
-    assert(process.env.NODE_ENV === 'test'); // TODO @common
+    assert(process.env.NODE_ENV === 'test');
     return this.tokenRepository.deleteAllTokens();
   }
 }

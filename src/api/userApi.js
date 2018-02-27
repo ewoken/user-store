@@ -35,7 +35,6 @@ function buildUserApi(userService) {
   });
 
   if (process.env.NODE_ENV === 'test') {
-    // TODO @common
     router.post('/generateToken/:userId', async (req, res) => {
       const token = await userService.generateAuthToken(req.params.userId);
       res.json(token);

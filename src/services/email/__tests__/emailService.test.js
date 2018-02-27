@@ -6,7 +6,7 @@ import buildEnvironment from '../../../environment';
 import EmailService from '../index';
 import { sent } from '../events';
 
-const f = omit(['createdAt']); // TODO
+const f = omit(['createdAt']);
 
 let maildev;
 
@@ -30,7 +30,7 @@ beforeAll(async () => {
   environment = await buildEnvironment();
   emailService = new EmailService(environment);
   await emailService.init();
-  emailService.bus.on('event', event => {
+  emailService.onEvent(event => {
     emailServiceEvents.push(event);
   });
 });

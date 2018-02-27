@@ -1,6 +1,7 @@
 import Joi from 'joi';
+import config from 'config';
 
-export const TOKEN_LENGTH = 32; // TODO @config
+export const TOKEN_LENGTH = config.get('services.tokenService.tokenLength');
 
 export const TokenId = Joi.string().length(TOKEN_LENGTH);
 

@@ -8,7 +8,7 @@ import EmailService from '../../email';
 import { signedUp, loggedIn, loggedOut, updated } from '../events';
 import { User } from '../types';
 
-const f = omit(['createdAt']); // TODO
+const f = omit(['createdAt']);
 
 let environment;
 let userService;
@@ -132,22 +132,29 @@ describe('userService', () => {
     });
   });
 
-  describe.only('.logInWithToken(token, context)', () => {
+  describe('.logInWithToken(token, context)', () => {
     const credentials = { email: 'plop@plop.com', password: 'azertyuiop' };
     const context = { user: null };
     let currentUser;
+    let token;
 
     beforeEach(async () => {
       currentUser = await userService.signUp(credentials, context);
+      token = await userService.generateAuthToken(currentUser.id);
     });
 
     test('should log in with a valid auth token', async () => {
-      const token = await userService.generateAuthToken(
-        currentUser.id,
-        context,
-      );
       const loggedUser = await userService.logInWithToken(token, context);
       expect(loggedUser.id).toEqual(currentUser.id);
+    });
+
+    test('should return logged user if logged and discard token', async () => {
+      const loggedUser = await userService.logIn(credentials, context);
+      const loggedUser2 = await userService.logInWithToken(token, context);
+      expect(loggedUser2).toEqual(loggedUser);
+      await expect(userService.logInWithToken(token, context)).rejects.toThrow(
+        /Invalid or expired token/,
+      );
     });
   });
 
@@ -236,6 +243,10 @@ describe('userService', () => {
         f(updated(returnedUser, updates)),
         f(loggedIn(loggedUser)),
       ]);
+    });
+
+    test.skip('should fail if not authorized', async () => {
+      throw new Error('TODO');
     });
 
     test('should fail when former password is wrong', async () => {

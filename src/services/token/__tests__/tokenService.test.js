@@ -9,7 +9,7 @@ import TokenService from '../index';
 import { created, consumed } from '../events';
 
 const secret = config.get('services.tokenService.secret');
-const f = omit(['createdAt']); // TODO
+const f = omit(['createdAt']);
 
 let environment;
 let tokenService;
@@ -18,7 +18,7 @@ beforeAll(async () => {
   environment = await buildEnvironment();
   tokenService = new TokenService(environment);
   await tokenService.init();
-  tokenService.bus.on('event', event => {
+  tokenService.onEvent(event => {
     tokenServiceEvents.push(event);
   });
 });
@@ -41,6 +41,11 @@ describe('tokenService', () => {
       .plus({ days: 1 })
       .toJSDate(),
   };
+  const consume = (token, expectedType = 'TEST') =>
+    tokenService.consumeToken({
+      token,
+      expectedType,
+    });
 
   describe('.createToken(tokenInput)', () => {
     test('should create a token', async () => {
@@ -50,15 +55,17 @@ describe('tokenService', () => {
       expect(tokenServiceEvents).toMatchObject([f(created(tokenObject, true))]);
     });
 
-    test('should discard previous tokens when asked (by default)', async () => {});
+    test('should discard previous tokens when asked (by default)', async () => {
+      const signedToken1 = await tokenService.createToken(testTokenObject);
+      await tokenService.createToken(testTokenObject);
+
+      await expect(consume(signedToken1)).rejects.toThrow(
+        /Invalid or expired token/,
+      );
+    });
   });
 
   describe('.consumeToken(args)', () => {
-    const consume = (token, expectedType = 'TEST') =>
-      tokenService.consumeToken({
-        token,
-        expectedType,
-      });
     const expiredDate = DateTime.local()
       .plus({ days: 2 })
       .toJSDate();
@@ -77,23 +84,34 @@ describe('tokenService', () => {
     });
     test('should throw when token is not of the expected type', async () => {
       await expect(consume(signedToken, 'TEST2')).rejects.toThrow(
-        /Bad token type/,
+        /Invalid or expired token/,
       );
     });
     test('should throw when token is used twice', async () => {
       await consume(signedToken);
-      await expect(consume(signedToken)).rejects.toThrow(/Invalid/);
+      await expect(consume(signedToken)).rejects.toThrow(
+        /Invalid or expired token/,
+      );
     });
     test('should throw an error when token is expired but not deleted', async () => {
       MockDate.set(expiredDate);
-      await expect(consume(signedToken)).rejects.toThrow(/expired/);
+      await expect(consume(signedToken)).rejects.toThrow(
+        /Invalid or expired token/,
+      );
       MockDate.reset();
     });
     test('should throw an error when token is expired and deleted', async () => {
       MockDate.set(expiredDate);
       await tokenService.deleteAllExpiredTokens();
-      await expect(consume(signedToken)).rejects.toThrow(/expired/);
+      await expect(consume(signedToken)).rejects.toThrow(
+        /Invalid or expired token/,
+      );
       MockDate.reset();
+    });
+    test('should throw an error when token signature is bad', async () => {
+      await expect(consume('badtoken')).rejects.toThrow(
+        /Invalid or expired token/,
+      );
     });
   });
 });

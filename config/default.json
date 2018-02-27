@@ -31,7 +31,8 @@
   },
   "services": {
     "tokenService": {
-      "secret": "plop"
+      "secret": "plop",
+      "tokenLength": 32
     }
   },
   "server": {
