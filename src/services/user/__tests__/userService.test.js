@@ -21,6 +21,9 @@ beforeAll(async () => {
     tokenService: new TokenService(environment),
   };
   await userService.init(services);
+  await services.tokenService.init(services);
+  await services.emailService.init(services);
+
   userService.onEvent(event => {
     userServiceEvents.push(event);
   });
