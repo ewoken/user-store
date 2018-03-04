@@ -16,6 +16,7 @@ import {
   errorHandlerMiddleware,
   logRequestMiddleware,
   addRequestId,
+  notFoundMiddleware,
 } from '@ewoken/backend-common/lib/api/customMiddleWares';
 
 import buildUserApi from './userApi';
@@ -38,6 +39,7 @@ function buildApi({ redisClient, logger }, { userService }) {
   app.use(session(sessionConfig));
   app.use(passport.initialize());
   app.use(passport.session());
+  app.use(logRequestMiddleware(logger));
 
   const LocalStrategy = passportLocal.Strategy;
   const BearerStrategy = passportHttpBearer.Strategy;
@@ -75,8 +77,8 @@ function buildApi({ redisClient, logger }, { userService }) {
 
   app.use('/users', buildUserApi(userService));
 
+  app.use(notFoundMiddleware());
   app.use(errorHandlerMiddleware(logger));
-  app.use(logRequestMiddleware(logger));
 
   return app;
 }
