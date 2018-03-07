@@ -67,7 +67,7 @@ describe('userService', () => {
         password: '',
       };
       await expect(userService.signUp(badUser, context)).rejects.toThrow(
-        /password/,
+        /Validation/,
       );
     });
 
@@ -174,6 +174,11 @@ describe('userService', () => {
       const loggedUser = await userService.getCurrentUser({}, context);
       expect(loggedUser).toEqual(user);
     });
+
+    test('should return null if not logged', async () => {
+      const loggedUser = await userService.getCurrentUser({}, { user: null });
+      expect(loggedUser).toEqual(null);
+    });
   });
 
   describe('.getUser(id, context)', async () => {
@@ -207,6 +212,15 @@ describe('userService', () => {
       const returnedUser = await userService.getUser(
         '7e9e3554-5460-4d49-a91b-277311e9bc0b',
         context,
+      );
+      expect(returnedUser).toBe(null);
+    });
+
+    test('should return null when it is not logged', async () => {
+      const notLoggedContext = { user: null };
+      const returnedUser = await userService.getUser(
+        '7e9e3554-5460-4d49-a91b-277311e9bc0b',
+        notLoggedContext,
       );
       expect(returnedUser).toBe(null);
     });
@@ -262,7 +276,7 @@ describe('userService', () => {
           },
           context,
         ),
-      ).rejects.toThrow(/password/);
+      ).rejects.toThrow(/Validation/);
     });
   });
 

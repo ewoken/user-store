@@ -18,6 +18,7 @@ import { TokenInput, TokenObject, ConsumeInput } from './types';
 import { created, consumed } from './events';
 
 const secret = config.get('services.tokenService.secret');
+const INVALID_EXPIRED_TOKEN = 'INVALID_EXPIRED_TOKEN';
 
 function isExpired(token) {
   return (
@@ -37,7 +38,7 @@ function unsignToken(signedToken) {
     token = jwt.verify(signedToken, secret);
   } catch (e) {
     if (e.name === 'JsonWebTokenError') {
-      throw new DomainError('Invalid or expired token', {
+      throw new DomainError('Invalid or expired token', INVALID_EXPIRED_TOKEN, {
         token: signedToken,
       });
     } else {
@@ -83,7 +84,7 @@ class TokenService extends Service {
     const tokenId = unsignedToken.id;
 
     if (unsignedToken.type !== expectedType) {
-      throw new DomainError('Invalid or expired token');
+      throw new DomainError('Invalid or expired token', INVALID_EXPIRED_TOKEN);
     }
 
     const consumedToken = await this.tokenRepository.withinTransaction(
@@ -102,7 +103,9 @@ class TokenService extends Service {
     );
 
     if (isExpired(consumedToken)) {
-      throw new DomainError('Invalid or expired token', { tokenId });
+      throw new DomainError('Invalid or expired token', INVALID_EXPIRED_TOKEN, {
+        tokenId,
+      });
     }
     this.dispatch(consumed(consumedToken));
     return consumedToken;

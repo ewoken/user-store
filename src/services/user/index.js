@@ -24,6 +24,10 @@ function checkPassword(password, passwordHash) {
   return bcrypt.compare(password, passwordHash);
 }
 
+const EXISTING_EMAIL = 'EXISTING_EMAIL';
+const BAD_CREDENTIALS = 'BAD_CREDENTIALS';
+const BAD_PASSWORD = 'BAD_PASSWORD';
+
 const AUTH_TOKEN_TYPE = 'AUTH_TOKEN_TYPE';
 
 class UserService extends Service {
@@ -59,7 +63,9 @@ class UserService extends Service {
       })
       .catch(
         only(ExistingEmailError, error => {
-          throw new DomainError(error.message, { email: newUser.email });
+          throw new DomainError(error.message, EXISTING_EMAIL, {
+            email: newUser.email,
+          });
         }),
       );
 
@@ -82,14 +88,14 @@ class UserService extends Service {
     });
 
     if (!registeredUser) {
-      throw new DomainError('Bad credentials', { email });
+      throw new DomainError('Bad credentials', BAD_CREDENTIALS, { email });
     }
     const isPasswordOk = await checkPassword(
       password,
       registeredUser.passwordHash,
     );
     if (!isPasswordOk) {
-      throw new DomainError('Bad credentials', { email });
+      throw new DomainError('Bad credentials', BAD_CREDENTIALS, { email });
     }
 
     this.dispatch(loggedIn(registeredUser));
@@ -124,7 +130,7 @@ class UserService extends Service {
     assertInput(UserUpdate, userUpdate);
     assertLogged(context);
     if (userUpdate.id !== context.user.id) {
-      throw new DomainError('Not authorized');
+      throw new DomainError('Not authorized'); // TODO new specific error
     }
     const {
       userUpdated,
@@ -143,7 +149,7 @@ class UserService extends Service {
         userToUpdate.passwordHash,
       );
       if (!isPasswordOk) {
-        throw new DomainError('Bad password for update', {
+        throw new DomainError('Bad password for update', BAD_PASSWORD, {
           id: userUpdate.id,
         });
       }
@@ -166,14 +172,15 @@ class UserService extends Service {
 
   // eslint-disable-next-line class-methods-use-this
   async getCurrentUser(args, context) {
-    assertLogged(context);
-    return format(User, context.user);
+    if (isLogged(context)) {
+      return format(User, context.user);
+    }
+    return null;
   }
 
   async getUser(id, context) {
     assertInput(UserId, id);
-    assertLogged(context);
-    if (context.user.id === id) {
+    if (isLogged(context) && context.user.id === id) {
       const returnedUser = await this.userRepository.getUserById(id);
       return format(User, returnedUser);
     }
