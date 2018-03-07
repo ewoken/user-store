@@ -33,13 +33,12 @@ function buildApi({ redisClient, logger }, { userService }) {
   app.use(addRequestId());
   app.use(helmet());
   app.use(compression());
-  app.use(cors());
+  app.use(cors(config.get('api.cors')));
   app.use(bodyParser.json());
   app.use(bodyParser.urlencoded({ extended: true }));
   app.use(session(sessionConfig));
   app.use(passport.initialize());
   app.use(passport.session());
-  app.use(logRequestMiddleware(logger));
 
   const LocalStrategy = passportLocal.Strategy;
   const BearerStrategy = passportHttpBearer.Strategy;
@@ -52,7 +51,10 @@ function buildApi({ redisClient, logger }, { userService }) {
       },
       (req, email, password, done) => {
         userService
-          .logIn({ email, password }, { user: req.user })
+          .logIn(
+            { email, password },
+            { user: req.user, requestId: req.requestId },
+          )
           .then(user => done(null, user))
           .catch(err => done(err));
       },
@@ -61,7 +63,7 @@ function buildApi({ redisClient, logger }, { userService }) {
   passport.use(
     new BearerStrategy({ passReqToCallback: true }, (req, token, done) => {
       userService
-        .logInWithToken(token, { user: req.user })
+        .logInWithToken(token, { user: req.user, requestId: req.requestId })
         .then(user => done(null, user))
         .catch(err => done(err));
     }),
@@ -79,6 +81,7 @@ function buildApi({ redisClient, logger }, { userService }) {
 
   app.use(notFoundMiddleware());
   app.use(errorHandlerMiddleware(logger));
+  app.use(logRequestMiddleware(logger));
 
   return app;
 }

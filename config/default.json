@@ -5,6 +5,10 @@
       "secret": "plop",
       "resave": false,
       "saveUninitialized": false
+    },
+    "cors": {
+      "credentials": true,
+      "origin": true
     }
   },
   "bus": {
