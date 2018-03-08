@@ -5,6 +5,7 @@ import MailDev from 'maildev';
 import buildEnvironment from '../../../environment';
 import EmailService from '../index';
 import { sent } from '../events';
+import Context from '../../../utils/Context';
 
 const f = omit(['createdAt']);
 
@@ -51,7 +52,7 @@ describe('emailService', () => {
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   };
-  const context = { user };
+  const context = new Context({ user });
 
   describe('.sendEmail(emailMessageInput, context)', () => {
     const emailMessage = {

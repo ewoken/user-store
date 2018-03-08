@@ -4,7 +4,6 @@ import uuid from 'uuid';
 
 import { EmailMessageInput, EmailMessage } from './types';
 import { sent } from './events';
-import { assertLogged } from '../../utils/authorizations';
 
 class EmailService extends Service {
   constructor(environment) {
@@ -18,7 +17,7 @@ class EmailService extends Service {
   }
 
   async sendEmail(emailMessageInput, context) {
-    assertLogged(context);
+    context.assertLogged();
     const emailInput = assertInput(EmailMessageInput, emailMessageInput);
 
     const emailMessageId = uuid();

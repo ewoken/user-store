@@ -20,6 +20,7 @@
     "flow": "^0.2.3",
     "helmet": "^3.9.0",
     "i18next": "^10.3.0",
+    "i18next-express-middleware": "^1.1.1",
     "i18next-node-fs-backend": "^1.0.0",
     "joi": "^13.1.0",
     "jsonwebtoken": "^8.1.1",

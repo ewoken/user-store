@@ -6,12 +6,6 @@ import { assertInput, format } from '@ewoken/backend-common/lib/assertSchema';
 import { DomainError, only } from '@ewoken/backend-common/lib/errors';
 import Service from '@ewoken/backend-common/lib/Service';
 
-import {
-  assertLogged,
-  assertNotLogged,
-  isLogged,
-} from '../../utils/authorizations';
-
 import { signedUp, loggedIn, loggedOut, updated } from './events';
 import { UserId, UserInput, Credentials, User, UserUpdate } from './types';
 import UserRepository, { ExistingEmailError } from './UserRepository';
@@ -45,14 +39,8 @@ class UserService extends Service {
     return this;
   }
 
-  /**
-   * Sign up a new user
-   * @param  {UserInput} newUser new user
-   * @param  {User} user    current logged user
-   * @return {User}         created user
-   */
   async signUp(newUser, context) {
-    assertNotLogged(context);
+    context.assertNotLogged();
     assertInput(UserInput, newUser);
 
     const passwordHash = await hashPassword(newUser.password);
@@ -73,14 +61,8 @@ class UserService extends Service {
     return format(User, createdUser);
   }
 
-  /**
-   * Log a user in
-   * @param  {Credentials} credentials credentials of the user
-   * @param  {User} user        current logged user
-   * @return {Object}             logged user
-   */
   async logIn(credentials, context) {
-    assertNotLogged(context);
+    context.assertNotLogged();
     assertInput(Credentials, credentials);
     const { email, password } = credentials;
     const registeredUser = await this.userRepository.getUserByEmail(email, {
@@ -103,7 +85,7 @@ class UserService extends Service {
   }
 
   async logInWithToken(token, context) {
-    if (isLogged(context)) {
+    if (context.isLogged()) {
       await this.tokenService.deleteToken(token);
       return this.getCurrentUser(null, context);
     }
@@ -121,14 +103,14 @@ class UserService extends Service {
   }
 
   async logOut(args, context) {
-    assertLogged(context);
+    context.assertLogged();
     this.dispatch(loggedOut(context.user));
     return Promise.resolve({ logOut: true });
   }
 
   async updateUser(userUpdate, context) {
     assertInput(UserUpdate, userUpdate);
-    assertLogged(context);
+    context.assertLogged();
     if (userUpdate.id !== context.user.id) {
       throw new DomainError('Not authorized'); // TODO new specific error
     }
@@ -172,7 +154,7 @@ class UserService extends Service {
 
   // eslint-disable-next-line class-methods-use-this
   async getCurrentUser(args, context) {
-    if (isLogged(context)) {
+    if (context.isLogged()) {
       return format(User, context.user);
     }
     return null;
@@ -180,7 +162,7 @@ class UserService extends Service {
 
   async getUser(id, context) {
     assertInput(UserId, id);
-    if (isLogged(context) && context.user.id === id) {
+    if (context.isLogged() && context.user.id === id) {
       const returnedUser = await this.userRepository.getUserById(id);
       return format(User, returnedUser);
     }

@@ -11,17 +11,19 @@ import passportLocal from 'passport-local';
 import passportHttpBearer from 'passport-http-bearer';
 import session from 'express-session';
 import configRedisStore from 'connect-redis';
+import i18nextMiddleware from 'i18next-express-middleware';
 
 import {
   errorHandlerMiddleware,
   logRequestMiddleware,
-  addRequestId,
+  addRequestIdMiddleware,
   notFoundMiddleware,
 } from '@ewoken/backend-common/lib/api/customMiddleWares';
 
+import Context from '../utils/Context';
 import buildUserApi from './userApi';
 
-function buildApi({ redisClient, logger }, { userService }) {
+function buildApi({ redisClient, logger, i18n }, { userService }) {
   const app = express();
   const RedisStore = configRedisStore(session);
   const sessionConfig = {
@@ -30,7 +32,7 @@ function buildApi({ redisClient, logger }, { userService }) {
     logErrors: error => logger.error(error),
   };
 
-  app.use(addRequestId());
+  app.use(addRequestIdMiddleware());
   app.use(helmet());
   app.use(compression());
   app.use(cors(config.get('api.cors')));
@@ -39,6 +41,11 @@ function buildApi({ redisClient, logger }, { userService }) {
   app.use(session(sessionConfig));
   app.use(passport.initialize());
   app.use(passport.session());
+  app.use(i18nextMiddleware.handle(i18n));
+  app.use((req, res, next) => {
+    req.context = Context.fromReq(req);
+    next();
+  });
 
   const LocalStrategy = passportLocal.Strategy;
   const BearerStrategy = passportHttpBearer.Strategy;
@@ -51,10 +58,7 @@ function buildApi({ redisClient, logger }, { userService }) {
       },
       (req, email, password, done) => {
         userService
-          .logIn(
-            { email, password },
-            { user: req.user, requestId: req.requestId },
-          )
+          .logIn({ email, password }, Context.fromReq(req))
           .then(user => done(null, user))
           .catch(err => done(err));
       },
@@ -63,7 +67,7 @@ function buildApi({ redisClient, logger }, { userService }) {
   passport.use(
     new BearerStrategy({ passReqToCallback: true }, (req, token, done) => {
       userService
-        .logInWithToken(token, { user: req.user, requestId: req.requestId })
+        .logInWithToken(token, Context.fromReq(req))
         .then(user => done(null, user))
         .catch(err => done(err));
     }),
@@ -78,6 +82,11 @@ function buildApi({ redisClient, logger }, { userService }) {
   });
 
   app.use('/users', buildUserApi(userService));
+
+  app.get('/locale', (req, res, next) => {
+    res.json(req.t('locale'));
+    next();
+  });
 
   app.use(notFoundMiddleware());
   app.use(errorHandlerMiddleware(logger));

@@ -7,6 +7,7 @@ import TokenService from '../../token';
 import EmailService from '../../email';
 import { signedUp, loggedIn, loggedOut, updated } from '../events';
 import { User } from '../types';
+import Context from '../../../utils/Context';
 
 const f = omit(['createdAt']);
 
@@ -43,7 +44,7 @@ afterAll(async () => {
 
 describe('userService', () => {
   describe('.signUp(newUser, context)', () => {
-    const context = { user: null };
+    const context = new Context();
     test('should sign up an user', async () => {
       const newUser = {
         email: 'plop@plop.com',
@@ -54,9 +55,10 @@ describe('userService', () => {
       assertTest(User, insertedUser);
       expect(insertedUser.email).toEqual(newUser.email);
 
-      const returnedUser = await userService.getUser(insertedUser.id, {
-        user: insertedUser,
-      });
+      const returnedUser = await userService.getUser(
+        insertedUser.id,
+        new Context({ user: insertedUser }),
+      );
       expect(returnedUser).toEqual(insertedUser);
       expect(userServiceEvents).toMatchObject([signedUp(insertedUser)]);
     });
@@ -87,7 +89,7 @@ describe('userService', () => {
         email: 'plop@plop.com',
         password: 'helloworld',
       };
-      const context2 = { user: newUser };
+      const context2 = new Context({ user: newUser });
       await expect(userService.signUp(newUser, context2)).rejects.toThrow(
         /logged/,
       );
@@ -99,7 +101,7 @@ describe('userService', () => {
       email: 'plop@plop.com',
       password: 'azertyuiop',
     };
-    const context = { user: null };
+    const context = new Context();
 
     beforeEach(() => userService.signUp(testUser, context));
 
@@ -128,7 +130,7 @@ describe('userService', () => {
     });
 
     test('should fail if logged', async () => {
-      const context2 = { user: testUser };
+      const context2 = new Context({ user: testUser });
       await expect(userService.logIn(testUser, context2)).rejects.toThrow(
         /logged/,
       );
@@ -137,7 +139,7 @@ describe('userService', () => {
 
   describe('.logInWithToken(token, context)', () => {
     const credentials = { email: 'plop@plop.com', password: 'azertyuiop' };
-    const context = { user: null };
+    const context = new Context();
     let currentUser;
     let token;
 
@@ -168,7 +170,7 @@ describe('userService', () => {
       createdAt: new Date(),
       updatedAt: new Date(),
     };
-    const context = { user };
+    const context = new Context({ user });
 
     test('should return the logged user', async () => {
       const loggedUser = await userService.getCurrentUser({}, context);
@@ -176,7 +178,7 @@ describe('userService', () => {
     });
 
     test('should return null if not logged', async () => {
-      const loggedUser = await userService.getCurrentUser({}, { user: null });
+      const loggedUser = await userService.getCurrentUser({}, new Context());
       expect(loggedUser).toEqual(null);
     });
   });
@@ -186,7 +188,7 @@ describe('userService', () => {
       email: 'plop@plop.com',
       password: 'helloworld',
     };
-    const context = { user: null };
+    const context = new Context();
     let user;
     beforeEach(async () => {
       context.user = null;
@@ -217,7 +219,7 @@ describe('userService', () => {
     });
 
     test('should return null when it is not logged', async () => {
-      const notLoggedContext = { user: null };
+      const notLoggedContext = new Context();
       const returnedUser = await userService.getUser(
         '7e9e3554-5460-4d49-a91b-277311e9bc0b',
         notLoggedContext,
@@ -231,7 +233,7 @@ describe('userService', () => {
       email: 'plop@plop.com',
       password: 'helloworld',
     };
-    const context = { user: null };
+    const context = new Context();
     let user;
     beforeEach(async () => {
       context.user = null;
@@ -251,7 +253,7 @@ describe('userService', () => {
       );
       const loggedUser = await userService.logIn(
         { email: credentials.email, password },
-        { user: null },
+        new Context(),
       );
       const updates = { passwordHash: expect.any(String) };
       expect(loggedUser).toEqual(returnedUser);
@@ -287,7 +289,7 @@ describe('userService', () => {
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
-    const context = { user };
+    const context = new Context({ user });
 
     test('should return a status OK when logged', async () => {
       const status = await userService.logOut({}, context);
