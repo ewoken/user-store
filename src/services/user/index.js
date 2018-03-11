@@ -24,9 +24,23 @@ const BAD_PASSWORD = 'BAD_PASSWORD';
 
 const AUTH_TOKEN_TYPE = 'AUTH_TOKEN_TYPE';
 
+const omitPasswordLog = (arg0, ...args) => [
+  {
+    ...arg0,
+    password: arg0.password ? '*********' : undefined,
+    formerPassword: arg0.formerPassword ? '*******' : undefined,
+  },
+  ...args,
+];
+
 class UserService extends Service {
   constructor(environment) {
-    super('UserService', environment);
+    const logConfig = {
+      signUp: omitPasswordLog,
+      logIn: omitPasswordLog,
+      updateUser: omitPasswordLog,
+    };
+    super('UserService', environment, logConfig);
     this.userRepository = new UserRepository(environment);
     this.emailService = null;
     this.tokenService = null;
@@ -111,9 +125,7 @@ class UserService extends Service {
   async updateUser(userUpdate, context) {
     assertInput(UserUpdate, userUpdate);
     context.assertLogged();
-    if (userUpdate.id !== context.user.id) {
-      throw new DomainError('Not authorized'); // TODO new specific error
-    }
+    context.assertToBeUser(userUpdate.id);
     const {
       userUpdated,
       updates,

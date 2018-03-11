@@ -3,7 +3,8 @@ import { assertInternal } from '@ewoken/backend-common/lib/assertSchema';
 import { User } from '../services/user/types';
 
 const LOGGED_ERROR = 'LOGGED_ERROR';
-const NOT_LOGGED_ERROR = 'NOT_LOGGED_ERROR';
+const UNAUTHORIZED_ERROR = 'UNAUTHORIZED_ERROR';
+const FORBIDDEN_ERROR = 'FORBIDDEN_ERROR';
 
 class Context {
   constructor(initializer = {}) {
@@ -38,7 +39,15 @@ class Context {
 
   assertLogged() {
     if (!this.user) {
-      throw new DomainError('You are not logged', NOT_LOGGED_ERROR);
+      throw new DomainError('Unauthorized', UNAUTHORIZED_ERROR);
+    }
+  }
+
+  assertToBeUser(userId) {
+    if (this.user.id !== userId) {
+      throw new DomainError('Forbidden', FORBIDDEN_ERROR, {
+        userId: this.user.id,
+      });
     }
   }
 

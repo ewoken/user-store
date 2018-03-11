@@ -71,9 +71,9 @@
     lodash "^4.2.0"
     to-fast-properties "^2.0.0"
 
-"@ewoken/backend-common@1.0.6":
-  version "1.0.6"
-  resolved "https://registry.yarnpkg.com/@ewoken/backend-common/-/backend-common-1.0.6.tgz#0aefa86e3e125593aa750f30504265caf3cc0ff5"
+"@ewoken/backend-common@1.0.7":
+  version "1.0.7"
+  resolved "https://registry.yarnpkg.com/@ewoken/backend-common/-/backend-common-1.0.7.tgz#5883a83333e4611fc32b147db00c755f1240c4da"
   dependencies:
     es6-error "^4.1.1"
     fetch-cookie "^0.7.0"

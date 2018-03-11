@@ -18,6 +18,7 @@ import {
   logRequestMiddleware,
   addRequestIdMiddleware,
   notFoundMiddleware,
+  debug as debugMiddleware,
 } from '@ewoken/backend-common/lib/api/customMiddleWares';
 
 import Context from '../utils/Context';
@@ -46,6 +47,7 @@ function buildApi({ redisClient, logger, i18n }, { userService }) {
     req.context = Context.fromReq(req);
     next();
   });
+  app.use(debugMiddleware());
 
   const LocalStrategy = passportLocal.Strategy;
   const BearerStrategy = passportHttpBearer.Strategy;
