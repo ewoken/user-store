@@ -17,8 +17,12 @@ class EmailService extends Service {
   }
 
   async sendEmail(emailMessageInput, context) {
-    context.assertLogged();
-    const emailInput = assertInput(EmailMessageInput, emailMessageInput);
+    // context.assertLogged();
+    const { targetUserId, ...emailInput } = assertInput(
+      EmailMessageInput,
+      emailMessageInput,
+    );
+    const authorUserId = context.isLogged() ? context.user.id : null;
 
     const emailMessageId = uuid();
     const emailMessage = {
@@ -26,13 +30,14 @@ class EmailService extends Service {
       id: emailMessageId,
       headers: {
         'email-message-id': emailMessageId,
+        'target-user-id': targetUserId,
       },
       messageId: emailMessageId,
     };
 
     await this.mailer.sendEmail(emailMessage);
 
-    this.dispatch(sent(emailMessage, { authorUserId: context.user.id }));
+    this.dispatch(sent(emailMessage, { authorUserId, targetUserId }));
     return format(EmailMessage, emailMessage);
   }
 }

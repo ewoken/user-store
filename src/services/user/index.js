@@ -1,13 +1,22 @@
 import assert from 'assert';
 import bcrypt from 'bcrypt';
 import { DateTime } from 'luxon';
+import queryString from 'qs';
 
 import { assertInput, format } from '@ewoken/backend-common/lib/assertSchema';
 import { DomainError, only } from '@ewoken/backend-common/lib/errors';
 import Service from '@ewoken/backend-common/lib/Service';
 
 import { signedUp, loggedIn, loggedOut, updated } from './events';
-import { UserId, UserInput, Credentials, User, UserUpdate } from './types';
+import {
+  UserId,
+  UserInput,
+  Credentials,
+  User,
+  UserUpdate,
+  ResetEmailInput,
+  ResetPasswordInput,
+} from './types';
 import UserRepository, { ExistingEmailError } from './UserRepository';
 
 function hashPassword(password) {
@@ -18,11 +27,14 @@ function checkPassword(password, passwordHash) {
   return bcrypt.compare(password, passwordHash);
 }
 
+// error types
 const EXISTING_EMAIL = 'EXISTING_EMAIL';
 const BAD_CREDENTIALS = 'BAD_CREDENTIALS';
 const BAD_PASSWORD = 'BAD_PASSWORD';
 
-const AUTH_TOKEN_TYPE = 'AUTH_TOKEN_TYPE';
+// token types
+const AUTH_TOKEN = 'AUTH_TOKEN';
+const RESET_PASSWORD_TOKEN = 'RESET_PASSWORD_TOKEN';
 
 const omitPasswordLog = (arg0, ...args) => [
   {
@@ -105,7 +117,7 @@ class UserService extends Service {
     }
 
     const tokenObject = await this.tokenService.consumeToken(
-      { token, expectedType: AUTH_TOKEN_TYPE },
+      { token, expectedType: AUTH_TOKEN }, // no expected type, assume that all tokens can authenticate
       context,
     );
     const loggedUser = await this.userRepository.getUserById(
@@ -186,8 +198,8 @@ class UserService extends Service {
     const token = await this.tokenService.createToken(
       {
         userId,
-        type: AUTH_TOKEN_TYPE,
-        expiredAt: DateTime.local()
+        type: AUTH_TOKEN,
+        expiredAt: DateTime.local() // TODO @config
           .plus({ days: 1 })
           .toJSDate(),
       },
@@ -195,10 +207,57 @@ class UserService extends Service {
     );
     return token;
   }
+
   // async validateEmail(token, context) {}
   // async sendEmailValidation(user, context) {}
-  // async sendResetPasswordEmail(userId, context) {}
-  // async resetPassword(input, context) {}
+
+  async sendResetPasswordEmail(input, context) {
+    assertInput(ResetEmailInput, input);
+    context.assertNotLogged();
+
+    const registeredUser = await this.userRepository.getUserByEmail(
+      input.email,
+    );
+    if (registeredUser) {
+      const resetPasswordToken = await this.tokenService.createToken({
+        userId: registeredUser.id,
+        type: RESET_PASSWORD_TOKEN,
+        expiredAt: DateTime.local() // TODO @config
+          .plus({ days: 1 })
+          .toJSDate(),
+      });
+      await this.emailService.sendEmail(
+        {
+          from: 'test@example.com', // TODO @config
+          to: registeredUser.email,
+          targetUserId: registeredUser.id,
+          subject: context.t('Reset password'),
+          html: `<a href="http://localhost:3000/#/resetPassword?${queryString.stringify(
+            {
+              email: registeredUser.email,
+              resetPasswordToken,
+            },
+          )}"> Go </a>`,
+        },
+        context,
+      );
+    }
+    return { ok: true }; // TODO
+  }
+
+  async resetPassword(input, context) {
+    context.assertNotLogged();
+    assertInput(ResetPasswordInput, input);
+    const tokenObject = await this.tokenService.consumeToken({
+      token: input.token,
+      expectedType: RESET_PASSWORD_TOKEN,
+    });
+
+    const userUpdated = this.userRepository.updateUser(tokenObject.userId, {
+      passwordHash: hashPassword(input.password),
+    });
+    return format(User, userUpdated);
+  }
 
   /**
    * delete all users (for test)

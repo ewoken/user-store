@@ -36,6 +36,13 @@ function buildUserApi(userService) {
     res.json(serviceResult);
   });
 
+  router.post(
+    '/sendResetPasswordEmail',
+    serviceToRoute(userService.sendResetPasswordEmail),
+  );
+
+  router.post('/resetPassword', serviceToRoute(userService.resetPassword));
+
   if (process.env.NODE_ENV === 'test') {
     router.post('/generateToken/:userId', async (req, res) => {
       const token = await userService.generateAuthToken(req.params.userId);

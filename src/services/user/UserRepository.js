@@ -90,7 +90,7 @@ class UserRepository {
     return this.getUserWhere({ id }, options);
   }
 
-  async updateUser(id, userUpdate, options) {
+  async updateUser(id, userUpdate, options = {}) {
     // TODO
     const { withPasswordHash = false, transaction } = options;
     const User = withPasswordHash
