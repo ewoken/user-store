@@ -45,6 +45,6 @@ export const EmailMessage = EmailMessageInput.keys({
     .strip(),
   headers: Joi.object({
     'email-message-id': Joi.string().required(),
-    'target-user-id': Joi.string(),
+    'target-user-id': Joi.string().valid(null),
   }).required(),
 });
