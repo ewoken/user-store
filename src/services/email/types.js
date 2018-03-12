@@ -27,7 +27,7 @@ export const EmailAddressList = Joi.array()
   });
 
 export const EmailMessageInput = Joi.object({
-  from: EmailAddress.required(), // TODO maybe not required with default
+  from: EmailAddress,
   to: EmailAddressList.required(),
   targetUserId: Joi.string().default(null),
   subject: Joi.string()

@@ -37,9 +37,19 @@
     "tokenService": {
       "secret": "plop",
       "tokenLength": 32
+    },
+    "userService": {
+      "authTokenDuration": { "days": 1 },
+      "resetPasswordTokenDuration": { "days": 1 }
+    },
+    "emailService": {
+      "from": "no-reply@user-store.org"
     }
   },
   "server": {
     "port": 5001
+  },
+  "applications": {
+    "main-app": "http://localhost:3000"
   }
 }

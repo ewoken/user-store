@@ -110,7 +110,7 @@ class TokenService extends Service {
       });
     }
     this.dispatch(consumed(consumedToken));
-    return consumedToken;
+    return format(TokenObject, consumedToken);
   }
 
   async deleteToken(token) {

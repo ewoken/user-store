@@ -1,5 +1,6 @@
 import assert from 'assert';
 import bcrypt from 'bcrypt';
+import config from 'config';
 import { DateTime } from 'luxon';
 import queryString from 'qs';
 
@@ -36,6 +37,16 @@ const BAD_PASSWORD = 'BAD_PASSWORD';
 const AUTH_TOKEN = 'AUTH_TOKEN';
 const RESET_PASSWORD_TOKEN = 'RESET_PASSWORD_TOKEN';
 
+// token durations
+const AUTH_TOKEN_DURATION = config.get(
+  'services.userService.authTokenDuration',
+);
+const RESET_PASSWORD_TOKEN_DURATION = config.get(
+  'services.userService.resetPasswordTokenDuration',
+);
+
+const MAIN_APP_URL = config.get('applications.main-app');
+
 const omitPasswordLog = (arg0, ...args) => [
   {
     ...arg0,
@@ -51,6 +62,7 @@ class UserService extends Service {
       signUp: omitPasswordLog,
       logIn: omitPasswordLog,
       updateUser: omitPasswordLog,
+      resetPassword: omitPasswordLog,
     };
     super('UserService', environment, logConfig);
     this.userRepository = new UserRepository(environment);
@@ -199,8 +211,8 @@ class UserService extends Service {
       {
         userId,
         type: AUTH_TOKEN,
-        expiredAt: DateTime.local() // TODO @config
-          .plus({ days: 1 })
+        expiredAt: DateTime.local()
+          .plus(AUTH_TOKEN_DURATION)
           .toJSDate(),
       },
       context,
@@ -222,17 +234,16 @@ class UserService extends Service {
       const resetPasswordToken = await this.tokenService.createToken({
         userId: registeredUser.id,
         type: RESET_PASSWORD_TOKEN,
-        expiredAt: DateTime.local() // TODO @config
-          .plus({ days: 1 })
+        expiredAt: DateTime.local()
+          .plus(RESET_PASSWORD_TOKEN_DURATION)
           .toJSDate(),
       });
       await this.emailService.sendEmail(
         {
-          from: 'test@example.com', // TODO @config
           to: registeredUser.email,
           targetUserId: registeredUser.id,
           subject: context.t('Reset password'),
-          html: `<a href="http://localhost:3000/#/resetPassword?${queryString.stringify(
+          html: `<a href="${MAIN_APP_URL}/#/resetPassword?${queryString.stringify(
             {
               email: registeredUser.email,
               resetPasswordToken,
@@ -242,7 +253,7 @@ class UserService extends Service {
         context,
       );
     }
-    return { ok: true }; // TODO
+    return { ok: true };
   }
 
   async resetPassword(input, context) {
@@ -253,9 +264,13 @@ class UserService extends Service {
       expectedType: RESET_PASSWORD_TOKEN,
     });
 
-    const userUpdated = this.userRepository.updateUser(tokenObject.userId, {
-      passwordHash: hashPassword(input.password),
-    });
+    const updates = { passwordHash: await hashPassword(input.password) };
+    const userUpdated = await this.userRepository.updateUser(
+      tokenObject.userId,
+      updates,
+    );
+
+    this.dispatch(updated(userUpdated, updates));
     return format(User, userUpdated);
   }
 
