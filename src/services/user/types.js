@@ -36,3 +36,12 @@ export const UserUpdate = Joi.object({
   password: password.required(),
   formerPassword: password.required(),
 });
+
+export const ResetEmailInput = Joi.object({
+  email,
+});
+
+export const ResetPasswordInput = Joi.object({
+  token: Joi.string().required(),
+  password: password.required(),
+});

@@ -18,7 +18,15 @@
       "url": "REDIS_URL"
     }
   },
+  "services": {
+    "tokenService": {
+      "secret": "TOKEN_SERVICE_SECRET"
+    }
+  },
   "server": {
     "port": "SERVER_PORT"
+  },
+  "applications": {
+    "main-app": "MAIN_APP_URL"
   }
 }

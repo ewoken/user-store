@@ -1,13 +1,24 @@
 import assert from 'assert';
 import bcrypt from 'bcrypt';
+import config from 'config';
 import { DateTime } from 'luxon';
+import queryString from 'qs';
 
 import { assertInput, format } from '@ewoken/backend-common/lib/assertSchema';
 import { DomainError, only } from '@ewoken/backend-common/lib/errors';
 import Service from '@ewoken/backend-common/lib/Service';
+import { maskArgs } from '@ewoken/backend-common/lib/logger';
 
 import { signedUp, loggedIn, loggedOut, updated } from './events';
-import { UserId, UserInput, Credentials, User, UserUpdate } from './types';
+import {
+  UserId,
+  UserInput,
+  Credentials,
+  User,
+  UserUpdate,
+  ResetEmailInput,
+  ResetPasswordInput,
+} from './types';
 import UserRepository, { ExistingEmailError } from './UserRepository';
 
 function hashPassword(password) {
@@ -18,27 +29,35 @@ function checkPassword(password, passwordHash) {
   return bcrypt.compare(password, passwordHash);
 }
 
+// error types
 const EXISTING_EMAIL = 'EXISTING_EMAIL';
 const BAD_CREDENTIALS = 'BAD_CREDENTIALS';
 const BAD_PASSWORD = 'BAD_PASSWORD';
 
-const AUTH_TOKEN_TYPE = 'AUTH_TOKEN_TYPE';
+// token types
+const AUTH_TOKEN = 'AUTH_TOKEN';
+const RESET_PASSWORD_TOKEN = 'RESET_PASSWORD_TOKEN';
 
-const omitPasswordLog = (arg0, ...args) => [
-  {
-    ...arg0,
-    password: arg0.password ? '*********' : undefined,
-    formerPassword: arg0.formerPassword ? '*******' : undefined,
-  },
-  ...args,
-];
+// token durations
+const AUTH_TOKEN_DURATION = config.get(
+  'services.userService.authTokenDuration',
+);
+const RESET_PASSWORD_TOKEN_DURATION = config.get(
+  'services.userService.resetPasswordTokenDuration',
+);
+const RESET_PASSWORD_EMAIL = 'RESET_PASSWORD_EMAIL';
+
+const MAIN_APP_URL = config.get('applications.main-app');
+
+const maskPassword = maskArgs(['password']);
 
 class UserService extends Service {
   constructor(environment) {
     const logConfig = {
-      signUp: omitPasswordLog,
-      logIn: omitPasswordLog,
-      updateUser: omitPasswordLog,
+      signUp: maskPassword,
+      logIn: maskPassword,
+      updateUser: maskArgs(['password', 'formerPassword']),
+      resetPassword: maskArgs(['token', 'password']),
     };
     super('UserService', environment, logConfig);
     this.userRepository = new UserRepository(environment);
@@ -105,7 +124,7 @@ class UserService extends Service {
     }
 
     const tokenObject = await this.tokenService.consumeToken(
-      { token, expectedType: AUTH_TOKEN_TYPE },
+      { token, expectedType: AUTH_TOKEN }, // no expected type, assume that all tokens can authenticate
       context,
     );
     const loggedUser = await this.userRepository.getUserById(
@@ -186,19 +205,70 @@ class UserService extends Service {
     const token = await this.tokenService.createToken(
       {
         userId,
-        type: AUTH_TOKEN_TYPE,
+        type: AUTH_TOKEN,
         expiredAt: DateTime.local()
-          .plus({ days: 1 })
+          .plus(AUTH_TOKEN_DURATION)
           .toJSDate(),
       },
       context,
     );
     return token;
   }
+
   // async validateEmail(token, context) {}
   // async sendEmailValidation(user, context) {}
-  // async sendResetPasswordEmail(userId, context) {}
-  // async resetPassword(input, context) {}
+
+  async sendResetPasswordEmail(input, context) {
+    assertInput(ResetEmailInput, input);
+    context.assertNotLogged();
+
+    const registeredUser = await this.userRepository.getUserByEmail(
+      input.email,
+    );
+    if (registeredUser) {
+      const resetPasswordToken = await this.tokenService.createToken({
+        userId: registeredUser.id,
+        type: RESET_PASSWORD_TOKEN,
+        expiredAt: DateTime.local()
+          .plus(RESET_PASSWORD_TOKEN_DURATION)
+          .toJSDate(),
+      });
+      await this.emailService.sendEmail(
+        {
+          to: registeredUser.email,
+          targetUserId: registeredUser.id,
+          type: RESET_PASSWORD_EMAIL,
+          subject: context.t('Reset password'),
+          html: `<a href="${MAIN_APP_URL}/#/resetPassword?${queryString.stringify(
+            {
+              email: registeredUser.email,
+              resetPasswordToken,
+            },
+          )}"> Go </a>`,
+        },
+        context,
+      );
+    }
+    return { ok: true };
+  }
+
+  async resetPassword(input, context) {
+    context.assertNotLogged();
+    assertInput(ResetPasswordInput, input);
+    const tokenObject = await this.tokenService.consumeToken({
+      token: input.token,
+      expectedType: RESET_PASSWORD_TOKEN,
+    });
+
+    const updates = { passwordHash: await hashPassword(input.password) };
+    const userUpdated = await this.userRepository.updateUser(
+      tokenObject.userId,
+      updates,
+    );
+
+    this.dispatch(updated(userUpdated, updates));
+    return format(User, userUpdated);
+  }
 
   /**
    * delete all users (for test)

@@ -27,8 +27,10 @@ export const EmailAddressList = Joi.array()
   });
 
 export const EmailMessageInput = Joi.object({
-  from: EmailAddress.required(), // TODO maybe not required with default
+  from: EmailAddress,
   to: EmailAddressList.required(),
+  targetUserId: Joi.string().default(null),
+  type: Joi.string().required(),
   subject: Joi.string()
     .min(5)
     .max(255)
@@ -44,10 +46,7 @@ export const EmailMessage = EmailMessageInput.keys({
     .strip(),
   headers: Joi.object({
     'email-message-id': Joi.string().required(),
+    'target-user-id': Joi.string().allow(null),
+    'email-message-type': Joi.string().required(),
   }).required(),
 });
-
-// in a option object with userId and type TODO
-export const Metadata = Joi.object()
-  .optional()
-  .default({});

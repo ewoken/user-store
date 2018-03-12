@@ -13,5 +13,8 @@ export const sent = (
   authorUserId,
   targetUserId,
   createdAt: new Date(),
-  payload: omit(['id', 'messageId'], emailMessage),
+  payload: omit(
+    ['id', 'messageId', 'targetUserId', 'text', 'html'],
+    emailMessage,
+  ),
 });

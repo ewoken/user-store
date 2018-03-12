@@ -76,7 +76,7 @@ describe('tokenService', () => {
 
     test('should return the token when it is ok', async () => {
       const tokenObject = await consume(signedToken);
-      expect(tokenObject).toMatchObject(testTokenObject);
+      expect(tokenObject).toMatchObject(omit(['expiredAt'], testTokenObject));
       expect(tokenServiceEvents).toMatchObject([
         f(created(tokenObject, true)),
         f(consumed(tokenObject)),

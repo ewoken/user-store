@@ -2,6 +2,7 @@ build/
 coverage/
 flow-typed/
 node_modules/
+.vscode/
 
 *.rdb
 .DS_Store

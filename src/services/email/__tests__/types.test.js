@@ -10,6 +10,7 @@ const emailMessageInput = {
   from: 'plop@plop.com',
   to: [addressObject, 'plip@plip.com'],
   subject: 'Hello World !',
+  type: 'EMAIL_TEST',
 };
 
 describe('email schemas', () => {

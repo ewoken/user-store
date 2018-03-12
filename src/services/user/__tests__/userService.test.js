@@ -297,4 +297,19 @@ describe('userService', () => {
       expect(userServiceEvents).toMatchObject([f(loggedOut(user))]);
     });
   });
+
+  describe('.sendResetPasswordEmail', () => {
+    test.skip('should send an email with a link to main-app', () => {
+      throw new Error('TODO');
+    });
+    test.skip('should not throw when email is not known', () => {
+      throw new Error('TODO');
+    });
+  });
+
+  describe('.resetPassword', () => {
+    test.skip('should update user password', () => {
+      throw new Error('TODO');
+    });
+  });
 });

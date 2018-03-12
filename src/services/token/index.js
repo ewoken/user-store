@@ -11,6 +11,7 @@ import {
   format,
 } from '@ewoken/backend-common/lib/assertSchema';
 import { DomainError, only } from '@ewoken/backend-common/lib/errors';
+import { maskArgs } from '@ewoken/backend-common/lib/logger';
 
 import TokenRepository from './TokenRepository';
 
@@ -50,7 +51,8 @@ function unsignToken(signedToken) {
 
 class TokenService extends Service {
   constructor(environment) {
-    super('EmailService', environment);
+    const logConfig = { consumeToken: maskArgs(['token']) };
+    super('EmailService', environment, logConfig);
     this.tokenRepository = new TokenRepository(environment);
   }
 
@@ -84,6 +86,7 @@ class TokenService extends Service {
     const tokenId = unsignedToken.id;
 
     if (unsignedToken.type !== expectedType) {
+      // TODO @trad
       throw new DomainError('Invalid or expired token', INVALID_EXPIRED_TOKEN);
     }
 
@@ -104,11 +107,12 @@ class TokenService extends Service {
 
     if (isExpired(consumedToken)) {
       throw new DomainError('Invalid or expired token', INVALID_EXPIRED_TOKEN, {
+        // TODO @trad
         tokenId,
       });
     }
     this.dispatch(consumed(consumedToken));
-    return consumedToken;
+    return format(TokenObject, consumedToken);
   }
 
   async deleteToken(token) {
