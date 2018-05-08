@@ -27,13 +27,17 @@ function buildUserApi(userService) {
 
   router.patch('/:id', serviceToRoute(userService.updateUser));
 
-  router.post('/logOut', async (req, res) => {
-    const serviceResult = await userService.logOut(
-      req.body,
-      Context.fromReq(req),
-    );
-    req.logout();
-    res.json(serviceResult);
+  router.post('/logOut', async (req, res, next) => {
+    try {
+      const serviceResult = await userService.logOut(
+        req.body,
+        Context.fromReq(req),
+      );
+      req.logout();
+      res.json(serviceResult);
+    } catch (error) {
+      next(error);
+    }
   });
 
   router.post(
