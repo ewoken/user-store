@@ -7,8 +7,6 @@ const INVALID_AUTHORIZATION_TOKEN = 'INVALID_AUTHORIZATION_TOKEN';
 
 // TODO improve
 export default function authorizationTokenMiddlewareFactory({ secret }) {
-  // console.log('TOKEN - ', jwt.sign({ name: 'user-store' }, secret));
-
   return function authorizationTokenMiddleware(req, res, next) {
     const signedToken = req.headers.authorization;
     if (signedToken) {

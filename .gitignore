@@ -3,6 +3,7 @@ coverage/
 flow-typed/
 node_modules/
 .vscode/
+tmp/
 
 *.rdb
 .DS_Store

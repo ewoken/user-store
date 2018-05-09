@@ -1,7 +1,6 @@
 import express from 'express';
 import passport from 'passport';
 import serviceToRoute from '@ewoken/backend-common/lib/api/serviceToRoute';
-import Context from '../utils/Context';
 
 function buildUserApi(userService) {
   const router = new express.Router();
@@ -23,10 +22,7 @@ function buildUserApi(userService) {
 
   router.post('/logOut', async (req, res, next) => {
     try {
-      const serviceResult = await userService.logOut(
-        req.body,
-        Context.fromReq(req),
-      );
+      const serviceResult = await userService.logOut(req.body, req.context);
       req.logout();
       res.json(serviceResult);
     } catch (error) {

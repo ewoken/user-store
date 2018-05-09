@@ -21,10 +21,12 @@ import {
 } from '@ewoken/backend-common/lib/api/customMiddleWares';
 
 import Context from '../utils/Context';
-import buildUserApi from './userApi';
 import authorizationTokenMiddleware from '../utils/authorizationTokenMiddleware';
 
-function buildApi({ redisClient, logger, i18n }, { userService }) {
+import buildUserApi from './userApi';
+import buildFileApi from './fileApi';
+
+function buildApi({ redisClient, logger, i18n }, services) {
   const app = express();
   const RedisStore = configRedisStore(session);
   const sessionConfig = {
@@ -64,7 +66,7 @@ function buildApi({ redisClient, logger, i18n }, { userService }) {
         passReqToCallback: true,
       },
       (req, email, password, done) => {
-        userService
+        services.userService
           .logIn(req.body, req.context)
           .then(user => done(null, user))
           .catch(err => done(err));
@@ -80,7 +82,8 @@ function buildApi({ redisClient, logger, i18n }, { userService }) {
     cb(null, user);
   });
 
-  app.use('/users', buildUserApi(userService));
+  app.use('/users', buildUserApi(services.userService));
+  app.use('/files', buildFileApi(services.fileService));
 
   app.get('/locale', (req, res) => {
     res.json(req.t('locale'));

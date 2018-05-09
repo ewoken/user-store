@@ -10,6 +10,15 @@
     "cors": {
       "credentials": true,
       "origin": true
+    },
+    "files": {
+      "storage": "DISK",
+      "path": "./tmp/",
+      "limits": {
+        "fileSize": 10485760,
+        "filesPerRequest": 10
+      },
+      "authorizedMimeTypes": true
     }
   },
   "bus": {
@@ -45,6 +54,9 @@
     },
     "emailService": {
       "from": "no-reply@user-store.org"
+    },
+    "fileService": {
+      "fileIdLength": 16
     }
   },
   "server": {

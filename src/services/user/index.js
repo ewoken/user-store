@@ -84,6 +84,7 @@ class UserService extends Service {
         passwordHash,
       })
       .catch(
+        // TODO remove this and do read + create into a transaction
         only(ExistingEmailError, error => {
           throw new DomainError(error.message, EXISTING_EMAIL, {
             email: newUser.email,
@@ -146,9 +147,8 @@ class UserService extends Service {
   }
 
   async updateUser(userUpdate, context) {
-    assertInput(UserUpdate, userUpdate);
-    context.assertLogged(); // TODO system maybe a bulk service
     context.assertToBeUser(userUpdate.id);
+    assertInput(UserUpdate, userUpdate);
     const {
       userUpdated,
       updates,
@@ -224,8 +224,8 @@ class UserService extends Service {
   // async sendEmailValidation(user, context) {}
 
   async sendResetPasswordEmail(input, context) {
-    assertInput(ResetEmailInput, input);
     context.assertNotLogged();
+    assertInput(ResetEmailInput, input);
 
     const registeredUser = await this.userRepository.getUserByEmail(
       input.email,

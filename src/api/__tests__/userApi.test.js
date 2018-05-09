@@ -1,155 +1,95 @@
-import fetchApi, { clearCookies } from '@ewoken/backend-common/lib/fetchApi';
 import getBaseUrl from '@ewoken/backend-common/lib/getBaseUrl';
 
 import launchApp from '../../server';
+import Client from '../client';
 
 let server;
-const baseUrl = () => getBaseUrl(server);
-const signUp = user =>
-  fetchApi(`${baseUrl()}/users/signUp`, {
-    method: 'POST',
-    body: JSON.stringify(user),
-    cookie: true,
-  });
-const logIn = credentials =>
-  fetchApi(`${baseUrl()}/users/logIn`, {
-    method: 'POST',
-    body: JSON.stringify(credentials),
-    cookie: true,
-  });
-const logInWithToken = token =>
-  fetchApi(`${baseUrl()}/users/logInWithToken`, {
-    method: 'POST',
-    body: JSON.stringify({ token }),
-    cookie: true,
-  });
-const getMe = () =>
-  fetchApi(`${baseUrl()}/users/me`, {
-    method: 'GET',
-    cookie: true,
-  });
-const getUser = id =>
-  fetchApi(`${baseUrl()}/users/${id}`, {
-    method: 'GET',
-    cookie: true,
-  });
-const updateUser = (id, updates) =>
-  fetchApi(`${baseUrl()}/users/${id}`, {
-    method: 'PATCH',
-    body: JSON.stringify(updates),
-    cookie: true,
-  });
-const logOut = () =>
-  fetchApi(`${baseUrl()}/users/logOut`, {
-    method: 'POST',
-    cookie: true,
-  });
-const deleteAllUsers = () =>
-  fetchApi(`${baseUrl()}/users`, {
-    method: 'DELETE',
-    cookie: true,
-  });
-const generateAuthToken = userId =>
-  fetchApi(`${baseUrl()}/users/generateToken/${userId}`, {
-    method: 'POST',
-    cookie: true,
-  });
-
-const clearSession = () => clearCookies('localhost');
+let client;
+let user;
+const credentials = {
+  email: 'testApi@plop.com',
+  password: 'helloworld',
+};
 
 beforeAll(async () => {
   server = await launchApp();
+  client = new Client(getBaseUrl(server), { cookie: true });
 });
 
 beforeEach(async () => {
-  await clearSession();
-  await deleteAllUsers();
+  await client.clearSession();
+  await client.deleteAllUsers();
+  user = await client.signUp(credentials);
 });
 
 afterAll(async () => {
-  await clearSession();
-  await deleteAllUsers();
+  await client.clearSession();
+  await client.deleteAllUsers();
   return new Promise(resolve => {
     server.unref();
     server.destroy(resolve);
   });
 });
 
-const user = {
-  email: 'testApi@plop.com',
-  password: 'helloworld',
-};
-
 describe('user api', () => {
   describe('POST /signUp', () => {
     test('should sign up a user', async () => {
-      const returnedUser = await signUp(user);
-      expect(returnedUser).toMatchObject({ email: user.email });
+      expect(user).toMatchObject({ email: user.email });
     });
   });
 
   describe('POST /logIn', () => {
     test('should log in a user', async () => {
-      await signUp(user);
-      const loggedUser = await logIn(user);
+      const loggedUser = await client.logIn(credentials);
       expect(loggedUser).toMatchObject({ email: user.email });
     });
   });
 
   describe('POST /logInWithToken', () => {
     test('should log in a user with a token', async () => {
-      const newUser = await signUp(user);
-      const token = await generateAuthToken(newUser.id);
-      await clearSession();
-      const loggedUser = await logInWithToken(token);
-      expect(loggedUser).toEqual(newUser);
+      const token = await client.generateAuthToken(user.id);
+      await client.clearSession();
+      const loggedUser = await client.logInWithToken(token);
+      expect(loggedUser).toEqual(user);
     });
   });
 
   describe('GET /me', () => {
     test('should return the logged user', async () => {
-      await signUp(user);
-      await logIn(user);
-      const loggedUser = await getMe();
+      await client.logIn(credentials);
+      const loggedUser = await client.getMe();
       expect(loggedUser).toMatchObject({ email: user.email });
     });
   });
 
   describe('GET /:id', () => {
     test('should return the logged user', async () => {
-      await signUp(user);
-      const loggedUser = await logIn(user);
-      expect(loggedUser.id).toBeDefined();
-      const returnedUser = await getUser(loggedUser.id);
-      expect(returnedUser).toMatchObject({ email: loggedUser.email });
+      await client.logIn(credentials);
+      const returnedUser = await client.getUser(user.id);
+      expect(returnedUser).toMatchObject({ email: user.email });
     });
   });
 
   describe('PATCH /:id', () => {
     test('should update user', async () => {
-      await signUp(user);
-      const loggedUser = await logIn(user);
-      expect(loggedUser).toMatchObject({ email: user.email });
+      await client.logIn(credentials);
       const password = 'ploplop';
-      await updateUser(loggedUser.id, {
-        formerPassword: user.password,
+      await client.updateUser(user.id, {
+        formerPassword: credentials.password,
         password,
       });
-      await logOut();
-      await logIn({ ...user, password });
+      await client.logOut();
+      await client.logIn({ email: user.email, password });
     });
   });
 
   describe('POST /logOut', () => {
     test('should log out', async () => {
-      await signUp(user);
-      await logIn(user);
-      const loggedUser = await getMe();
-      expect(loggedUser).toMatchObject({ email: user.email });
-      const status = await logOut();
+      await client.logIn(credentials);
+      const status = await client.logOut();
       expect(status).toEqual({ logOut: true });
-      const loggedUser2 = await getMe();
-      expect(loggedUser2).toBeNull();
+      const loggedUser = await client.getMe();
+      expect(loggedUser).toBeNull();
     });
   });
 });
