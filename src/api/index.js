@@ -8,7 +8,6 @@ import compression from 'compression';
 import helmet from 'helmet';
 import passport from 'passport';
 import passportLocal from 'passport-local';
-import passportHttpBearer from 'passport-http-bearer';
 import session from 'express-session';
 import configRedisStore from 'connect-redis';
 import i18nextMiddleware from 'i18next-express-middleware';
@@ -23,6 +22,7 @@ import {
 
 import Context from '../utils/Context';
 import buildUserApi from './userApi';
+import authorizationTokenMiddleware from '../utils/authorizationTokenMiddleware';
 
 function buildApi({ redisClient, logger, i18n }, { userService }) {
   const app = express();
@@ -34,6 +34,7 @@ function buildApi({ redisClient, logger, i18n }, { userService }) {
   };
 
   app.use(addRequestIdMiddleware());
+  app.use(logRequestMiddleware(logger));
   app.use(helmet());
   app.use(compression());
   app.use(cors(config.get('api.cors')));
@@ -47,12 +48,16 @@ function buildApi({ redisClient, logger, i18n }, { userService }) {
     req.context = Context.fromReq(req);
     next();
   });
+  app.use(
+    authorizationTokenMiddleware({
+      secret: config.get('api.authorizationSecret'),
+    }),
+  );
   app.use(debugMiddleware());
 
   const LocalStrategy = passportLocal.Strategy;
-  const BearerStrategy = passportHttpBearer.Strategy;
   passport.use(
-    new LocalStrategy(
+    new LocalStrategy( // TODO should manage bad body and throw ValidationError
       {
         usernameField: 'email',
         passwordField: 'password',
@@ -60,19 +65,11 @@ function buildApi({ redisClient, logger, i18n }, { userService }) {
       },
       (req, email, password, done) => {
         userService
-          .logIn({ email, password }, Context.fromReq(req))
+          .logIn(req.body, req.context)
           .then(user => done(null, user))
           .catch(err => done(err));
       },
     ),
-  );
-  passport.use(
-    new BearerStrategy({ passReqToCallback: true }, (req, token, done) => {
-      userService
-        .logInWithToken(token, Context.fromReq(req))
-        .then(user => done(null, user))
-        .catch(err => done(err));
-    }),
   );
 
   passport.serializeUser((user, cb) => {
@@ -85,14 +82,12 @@ function buildApi({ redisClient, logger, i18n }, { userService }) {
 
   app.use('/users', buildUserApi(userService));
 
-  app.get('/locale', (req, res, next) => {
+  app.get('/locale', (req, res) => {
     res.json(req.t('locale'));
-    next();
   });
 
   app.use(notFoundMiddleware());
   app.use(errorHandlerMiddleware(logger));
-  app.use(logRequestMiddleware(logger));
 
   return app;
 }

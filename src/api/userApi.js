@@ -12,13 +12,7 @@ function buildUserApi(userService) {
     res.json(req.user);
   });
 
-  router.post(
-    '/logInWithToken',
-    passport.authenticate('bearer'),
-    (req, res) => {
-      res.json(req.user);
-    },
-  );
+  router.post('/logInWithToken', serviceToRoute(userService.logInWithToken));
 
   // /:id with id !== 'me'
   router.get(/^\/(?!me)(.*)$/, serviceToRoute(userService.getUser));

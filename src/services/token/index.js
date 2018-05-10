@@ -34,9 +34,9 @@ function signToken(token) {
 }
 
 function unsignToken(signedToken) {
-  let token;
   try {
-    token = jwt.verify(signedToken, secret);
+    const token = jwt.verify(signedToken, secret);
+    return assertInternal(TokenObject, token);
   } catch (e) {
     if (e.name === 'JsonWebTokenError') {
       throw new DomainError('Invalid or expired token', INVALID_EXPIRED_TOKEN, {
@@ -46,7 +46,6 @@ function unsignToken(signedToken) {
       throw e;
     }
   }
-  return assertInternal(TokenObject, token);
 }
 
 class TokenService extends Service {

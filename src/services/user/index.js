@@ -18,6 +18,7 @@ import {
   UserUpdate,
   ResetEmailInput,
   ResetPasswordInput,
+  TokenInput,
 } from './types';
 import UserRepository, { ExistingEmailError } from './UserRepository';
 
@@ -117,14 +118,16 @@ class UserService extends Service {
     return format(User, registeredUser);
   }
 
-  async logInWithToken(token, context) {
+  async logInWithToken(tokenInput, context) {
+    assertInput(TokenInput, tokenInput);
+    const { token } = tokenInput;
     if (context.isLogged()) {
       await this.tokenService.deleteToken(token);
       return this.getCurrentUser(null, context);
     }
 
     const tokenObject = await this.tokenService.consumeToken(
-      { token, expectedType: AUTH_TOKEN }, // no expected type, assume that all tokens can authenticate
+      { token, expectedType: AUTH_TOKEN },
       context,
     );
     const loggedUser = await this.userRepository.getUserById(

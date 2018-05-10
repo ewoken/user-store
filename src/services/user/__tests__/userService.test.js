@@ -86,29 +86,37 @@ describe('userService', () => {
 
     test('should fail if already logged', async () => {
       const newUser = {
+        id: '1',
         email: 'plop@plop.com',
-        password: 'helloworld',
+        createdAt: '2018-01-01T00:00:00.000Z',
+        updatedAt: '2018-01-01T00:00:00.000Z',
       };
       const context2 = new Context({ user: newUser });
-      await expect(userService.signUp(newUser, context2)).rejects.toThrow(
-        /logged/,
-      );
+      await expect(
+        userService.signUp(
+          { email: newUser.email, password: '1234567' },
+          context2,
+        ),
+      ).rejects.toThrow(/logged/);
     });
   });
 
   describe('.logIn(credentials, context)', () => {
-    const testUser = {
+    const testCredentials = {
       email: 'plop@plop.com',
       password: 'azertyuiop',
     };
     const context = new Context();
+    let testUser;
 
-    beforeEach(() => userService.signUp(testUser, context));
+    beforeEach(async () => {
+      testUser = await userService.signUp(testCredentials, context);
+    });
 
     test('should log in a user with good credentials', async () => {
-      const loggedUser = await userService.logIn(testUser, context);
+      const loggedUser = await userService.logIn(testCredentials, context);
       assertTest(User, loggedUser);
-      expect(loggedUser.email).toEqual(testUser.email);
+      expect(loggedUser.email).toEqual(testCredentials.email);
       expect(userServiceEvents).toMatchObject([
         f(signedUp(loggedUser)),
         f(loggedIn(loggedUser)),
@@ -149,17 +157,17 @@ describe('userService', () => {
     });
 
     test('should log in with a valid auth token', async () => {
-      const loggedUser = await userService.logInWithToken(token, context);
+      const loggedUser = await userService.logInWithToken({ token }, context);
       expect(loggedUser.id).toEqual(currentUser.id);
     });
 
     test('should return logged user if logged and discard token', async () => {
       const loggedUser = await userService.logIn(credentials, context);
-      const loggedUser2 = await userService.logInWithToken(token, context);
+      const loggedUser2 = await userService.logInWithToken({ token }, context);
       expect(loggedUser2).toEqual(loggedUser);
-      await expect(userService.logInWithToken(token, context)).rejects.toThrow(
-        /Invalid or expired token/,
-      );
+      await expect(
+        userService.logInWithToken({ token }, context),
+      ).rejects.toThrow(/Invalid or expired token/);
     });
   });
 

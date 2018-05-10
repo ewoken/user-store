@@ -45,3 +45,7 @@ export const ResetPasswordInput = Joi.object({
   token: Joi.string().required(),
   password: password.required(),
 });
+
+export const TokenInput = Joi.object({
+  token: Joi.string().required(),
+});

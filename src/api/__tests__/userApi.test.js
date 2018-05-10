@@ -20,9 +20,7 @@ const logIn = credentials =>
 const logInWithToken = token =>
   fetchApi(`${baseUrl()}/users/logInWithToken`, {
     method: 'POST',
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
+    body: JSON.stringify({ token }),
     cookie: true,
   });
 const getMe = () =>
@@ -150,6 +148,8 @@ describe('user api', () => {
       expect(loggedUser).toMatchObject({ email: user.email });
       const status = await logOut();
       expect(status).toEqual({ logOut: true });
+      const loggedUser2 = await getMe();
+      expect(loggedUser2).toBeNull();
     });
   });
 });

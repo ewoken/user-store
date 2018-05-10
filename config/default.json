@@ -1,5 +1,6 @@
 {
   "api": {
+    "authorizationSecret": "big secret",
     "session": {
       "name": "sessionId",
       "secret": "plop",
