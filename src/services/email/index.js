@@ -10,6 +10,7 @@ import { sent } from './events';
 
 const DEFAULT_FROM = config.get('services.emailService.from');
 
+// TODO system authorizations
 class EmailService extends Service {
   constructor(environment) {
     const logConfig = { sendEmail: maskArgs(['text', 'html']) };

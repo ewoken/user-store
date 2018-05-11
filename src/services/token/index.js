@@ -48,6 +48,7 @@ function unsignToken(signedToken) {
   }
 }
 
+// TODO add system authorizations
 class TokenService extends Service {
   constructor(environment) {
     const logConfig = { consumeToken: maskArgs(['token']) };
@@ -85,7 +86,6 @@ class TokenService extends Service {
     const tokenId = unsignedToken.id;
 
     if (unsignedToken.type !== expectedType) {
-      // TODO @trad
       throw new DomainError('Invalid or expired token', INVALID_EXPIRED_TOKEN);
     }
 
@@ -106,7 +106,6 @@ class TokenService extends Service {
 
     if (isExpired(consumedToken)) {
       throw new DomainError('Invalid or expired token', INVALID_EXPIRED_TOKEN, {
-        // TODO @trad
         tokenId,
       });
     }

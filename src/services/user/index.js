@@ -74,7 +74,7 @@ class UserService extends Service {
   }
 
   async signUp(newUser, context) {
-    context.assertNotLogged();
+    context.assertNotLogged(); // TODO and system ? maybe a bulk service ?
     assertInput(UserInput, newUser);
 
     const passwordHash = await hashPassword(newUser.password);
@@ -139,6 +139,7 @@ class UserService extends Service {
   }
 
   async logOut(args, context) {
+    // TODO system maybe a bulk service
     context.assertLogged();
     this.dispatch(loggedOut(context.user));
     return Promise.resolve({ logOut: true });
@@ -146,7 +147,7 @@ class UserService extends Service {
 
   async updateUser(userUpdate, context) {
     assertInput(UserUpdate, userUpdate);
-    context.assertLogged();
+    context.assertLogged(); // TODO system maybe a bulk service
     context.assertToBeUser(userUpdate.id);
     const {
       userUpdated,
@@ -197,6 +198,7 @@ class UserService extends Service {
   async getUser(id, context) {
     assertInput(UserId, id);
     if (context.isLogged() && context.user.id === id) {
+      // TODO system maybe bulk
       const returnedUser = await this.userRepository.getUserById(id);
       return format(User, returnedUser);
     }
@@ -204,7 +206,7 @@ class UserService extends Service {
   }
 
   async generateAuthToken(userId, context) {
-    // TODO authorizations
+    // TODO authorizations + system
     const token = await this.tokenService.createToken(
       {
         userId,
