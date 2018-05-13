@@ -49,7 +49,13 @@ afterAll(async () => {
 });
 
 describe('file service', () => {
-  const systemContext = new Context({ system: {} });
+  const systemContext = new Context({
+    system: {
+      name: 'test',
+      version: 'test',
+      instanceId: 'test',
+    },
+  });
   const userContext = new Context({
     user: {
       id: '1',

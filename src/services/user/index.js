@@ -9,6 +9,7 @@ import { DomainError, only } from '@ewoken/backend-common/lib/errors';
 import Service from '@ewoken/backend-common/lib/Service';
 import { maskArgs } from '@ewoken/backend-common/lib/logger';
 
+import userStore from '../../identity';
 import { signedUp, loggedIn, loggedOut, updated } from './events';
 import {
   UserId,
@@ -73,8 +74,17 @@ class UserService extends Service {
     return this;
   }
 
+  /* TODO
+  * async createUsers(users, context) {
+  *   context.assertIsSystem()
+  *   ...
+  *   newUsers.map(user => this.dispatch(created(user)))
+  *   return newUsers
+  * }
+  */
+
   async signUp(newUser, context) {
-    context.assertNotLogged(); // TODO and system ? maybe a bulk service ?
+    context.assertNotLogged();
     assertInput(UserInput, newUser);
 
     const passwordHash = await hashPassword(newUser.password);
@@ -140,7 +150,7 @@ class UserService extends Service {
   }
 
   async logOut(args, context) {
-    // TODO system maybe a bulk service
+    // TODO system maybe a bulk service @hard
     context.assertLogged();
     this.dispatch(loggedOut(context.user));
     return Promise.resolve({ logOut: true });
@@ -198,12 +208,14 @@ class UserService extends Service {
   async getUser(id, context) {
     assertInput(UserId, id);
     if (context.isLogged() && context.user.id === id) {
-      // TODO system maybe bulk
       const returnedUser = await this.userRepository.getUserById(id);
       return format(User, returnedUser);
     }
     return null;
   }
+
+  // TODO can replace getUser
+  // async getUsers(userIds, context) {}
 
   async generateAuthToken(userId, context) {
     // TODO authorizations + system
@@ -251,7 +263,7 @@ class UserService extends Service {
             },
           )}"> Go </a>`,
         },
-        context,
+        context.asSystem(userStore),
       );
     }
     return { ok: true };

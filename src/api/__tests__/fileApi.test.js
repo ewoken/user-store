@@ -13,7 +13,7 @@ let systemClient;
 let fileMetas;
 const credentials = { email: 'test@test.com', password: '1234567' };
 const token = jwt.sign(
-  { name: 'user-store' },
+  { name: 'user-store', version: 'test', instanceId: 'test' },
   config.get('api.authorizationSecret'),
 );
 const filePaths = ['./data/test01.jpg', './data/test02.txt'].map(p =>

@@ -1,4 +1,5 @@
 import jwt from 'jsonwebtoken';
+import { omit } from 'ramda';
 
 import { DomainError } from '@ewoken/backend-common/lib/errors';
 import Context from './Context';
@@ -13,7 +14,7 @@ export default function authorizationTokenMiddlewareFactory({ secret }) {
       try {
         req.context.assertNotLogged();
         const token = jwt.verify(signedToken, secret);
-        req.system = token;
+        req.system = omit(['iat'], token);
         req.context = Context.fromReq(req);
         next();
       } catch (error) {

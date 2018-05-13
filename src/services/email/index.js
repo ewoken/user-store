@@ -10,7 +10,6 @@ import { sent } from './events';
 
 const DEFAULT_FROM = config.get('services.emailService.from');
 
-// TODO system authorizations
 class EmailService extends Service {
   constructor(environment) {
     const logConfig = { sendEmail: maskArgs(['text', 'html']) };
@@ -23,13 +22,14 @@ class EmailService extends Service {
   }
 
   async sendEmail(emailMessageInput, context) {
+    context.assertAuthentified();
     const {
       targetUserId,
       from = DEFAULT_FROM,
       type,
       ...emailInput
     } = assertInput(EmailMessageInput, emailMessageInput);
-    const authorUserId = context.isLogged() ? context.user.id : null;
+    const authorUserId = context.isLogged() ? context.user.id : null; // TODO system id + authorId
 
     const emailMessageId = uuid();
     const emailMessage = {

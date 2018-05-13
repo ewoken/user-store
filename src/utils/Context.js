@@ -2,19 +2,34 @@ import Joi from 'joi';
 
 import { DomainError } from '@ewoken/backend-common/lib/errors';
 import { assertInternal } from '@ewoken/backend-common/lib/assertSchema';
-import { User } from '../services/user/types';
 
 const LOGGED_ERROR = 'LOGGED_ERROR';
 const UNAUTHORIZED_ERROR = 'UNAUTHORIZED_ERROR';
 const FORBIDDEN_ERROR = 'FORBIDDEN_ERROR';
 
+// TODO @common
+export const ContextUser = Joi.object({
+  id: Joi.string().required(),
+  email: Joi.string().required(),
+  createdAt: Joi.date().required(),
+  updatedAt: Joi.date().required(),
+});
+
+// TODO @common
+export const ContextSystem = Joi.object({
+  name: Joi.string().required(),
+  version: Joi.string().required(),
+  instanceId: Joi.string().required(),
+});
+
 export const ContextInitializer = Joi.object({
   requestId: Joi.string().default(null),
-  user: User,
-  system: Joi.object(),
+  user: ContextUser,
+  system: ContextSystem,
   t: Joi.func().default(i => i),
 }).nand(['user', 'system']);
 
+// TODO @common
 class Context {
   constructor(initializer = {}) {
     const { requestId, user = null, system = null, t } = assertInternal(

@@ -48,7 +48,6 @@ function unsignToken(signedToken) {
   }
 }
 
-// TODO add system authorizations
 class TokenService extends Service {
   constructor(environment) {
     const logConfig = { consumeToken: maskArgs(['token']) };

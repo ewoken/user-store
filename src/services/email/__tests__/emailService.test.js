@@ -79,7 +79,7 @@ describe('emailService', () => {
       ]);
     });
 
-    test.skip('should fail if not logged', async () => {
+    test('should fail if not logged', async () => {
       const notLoggedContext = new Context({});
       await expect(
         emailService.sendEmail(emailMessage, notLoggedContext),
