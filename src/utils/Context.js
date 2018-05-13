@@ -57,7 +57,7 @@ class Context {
   asSystem(system) {
     return new Context({
       ...this.context,
-      user: null,
+      user: undefined,
       system,
     });
   }

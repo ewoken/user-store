@@ -1,4 +1,8 @@
+// TODO factorize
 import { omit } from 'ramda';
+import MailDev from 'maildev';
+import config from 'config';
+
 import { assertTest } from '@ewoken/backend-common/lib/assertSchema';
 
 import buildEnvironment from '../../../environment';
@@ -11,10 +15,24 @@ import Context from '../../../utils/Context';
 
 const f = omit(['createdAt']);
 
+let maildev;
 let environment;
 let userService;
 let userServiceEvents;
 beforeAll(async () => {
+  maildev = new MailDev({
+    smtp: config.get('environment.mailer.options.port'),
+    silent: true,
+  });
+  await new Promise((resolve, reject) =>
+    maildev.listen(err => {
+      if (err) {
+        reject(err);
+      }
+      resolve();
+    }),
+  );
+
   environment = await buildEnvironment();
   userService = new UserService(environment);
   const services = {
@@ -39,6 +57,7 @@ beforeEach(async () => {
 afterAll(async () => {
   // clean after all to make environment clean
   await userService.deleteAllUsers();
+  await new Promise(resolve => maildev.close(resolve));
   environment.close();
 });
 
@@ -272,8 +291,17 @@ describe('userService', () => {
       ]);
     });
 
-    test.skip('should fail if not authorized', async () => {
-      throw new Error('TODO');
+    test('should fail if not authorized', async () => {
+      await expect(
+        userService.updateUser(
+          {
+            id: user.id,
+            formerPassword: credentials.password,
+            password: '1234567',
+          },
+          new Context(),
+        ),
+      ).rejects.toThrow(/Unauthorized/);
     });
 
     test('should fail when former password is wrong', async () => {
@@ -307,11 +335,28 @@ describe('userService', () => {
   });
 
   describe('.sendResetPasswordEmail', () => {
-    test.skip('should send an email with a link to main-app', () => {
-      throw new Error('TODO');
+    test('should send an email with a link to main-app', async () => {
+      const context = new Context();
+      const email = 'azerty@azerty.com';
+      await userService.signUp({ email, password: '1234567' }, context);
+      const response = await userService.sendResetPasswordEmail(
+        { email },
+        context,
+      );
+      expect(response).toEqual({ ok: true });
+      const message = await new Promise(resolve =>
+        maildev.on('new', emailMessage => {
+          resolve(emailMessage);
+        }),
+      );
+      expect(message.to[0].address).toEqual(email);
     });
-    test.skip('should not throw when email is not known', () => {
-      throw new Error('TODO');
+    test('should not throw when email is not known', async () => {
+      const response = await userService.sendResetPasswordEmail(
+        { email: 'azerty@azerty.com' },
+        new Context(),
+      );
+      expect(response).toEqual({ ok: true });
     });
   });
 
