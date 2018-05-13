@@ -9,15 +9,18 @@ import mailer from './mailer';
 
 async function buildEnvironment() {
   logger.info('Building environment...');
-  // TODO make parallel
-  const amqpClient = await buildAMQPClient({
-    url: config.get('environment.rabbitmq.url'),
-    logger,
-  });
-  const sequelize = await buildSequelize({
-    url: config.get('environment.mysql.url'),
-    logger,
-  });
+
+  const [amqpClient, sequelize] = await Promise.all([
+    buildAMQPClient({
+      url: config.get('environment.rabbitmq.url'),
+      logger,
+    }),
+    buildSequelize({
+      url: config.get('environment.mysql.url'),
+      logger,
+    }),
+  ]);
+
   const redisClient = buildRedisClient({
     url: config.get('environment.redis.url'),
     logger,
