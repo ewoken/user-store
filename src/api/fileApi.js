@@ -68,9 +68,7 @@ function buildFileApi(fileService) {
     '/',
     serviceToRoute(async (fileIds, context) => {
       const res = await fileService.deleteFiles(fileIds, context);
-
       await fileStorage.deleteFiles(fileIds);
-
       return res;
     }),
   );
@@ -80,9 +78,7 @@ function buildFileApi(fileService) {
       '/*',
       serviceToRoute(async () => {
         const res = await fileService.deleteAllFiles();
-
         await fileStorage.deleteAllFiles();
-
         return res;
       }),
     );

@@ -38,7 +38,7 @@ class FileService extends Service {
   }
 
   async getFiles(fileIdsInput, context) {
-    context.assertAuthentified(); // TODO maybe can return [] when not auth
+    context.assertAuthentified();
     const fileIds = assertInput(FileIds, fileIdsInput);
 
     const files = await this.fileRepository.getFiles(fileIds);
