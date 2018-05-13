@@ -8,7 +8,6 @@ export const TokenId = Joi.string().length(TOKEN_LENGTH);
 export const TokenInput = Joi.object({
   type: Joi.string().required(),
   userId: Joi.string().required(),
-  createdAt: Joi.date().default(() => new Date(), 'set to now'), // TODO ?
   expiredAt: Joi.date().required(),
   discardPreviousTokens: Joi.boolean().default(true),
 });
