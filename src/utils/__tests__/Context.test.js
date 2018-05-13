@@ -97,4 +97,11 @@ describe('Context', () => {
       expect(new Context({ system: {} }).isSystem()).toBe(true);
     });
   });
+  describe('.isAuthentified()', () => {
+    test('should assert whether request is authentified or not', () => {
+      expect(new Context().isAuthentified()).toBe(false);
+      expect(new Context({ user }).isAuthentified()).toBe(true);
+      expect(new Context({ system: {} }).isAuthentified()).toBe(true);
+    });
+  });
 });

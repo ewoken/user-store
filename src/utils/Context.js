@@ -39,6 +39,14 @@ class Context {
     });
   }
 
+  asSystem(system) {
+    return new Context({
+      ...this.context,
+      user: null,
+      system,
+    });
+  }
+
   assertNotLogged() {
     if (this.user) {
       const { email } = this.user;
@@ -64,7 +72,7 @@ class Context {
   }
 
   assertAuthentified() {
-    if (!this.user && !this.system) {
+    if (!this.isAuthentified()) {
       throw new DomainError('Unauthorized', UNAUTHORIZED_ERROR);
     }
   }
@@ -85,6 +93,10 @@ class Context {
 
   isSystem() {
     return !!this.system;
+  }
+
+  isAuthentified() {
+    return this.isLogged() || this.isSystem();
   }
 }
 
