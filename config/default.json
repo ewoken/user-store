@@ -11,7 +11,7 @@
       "credentials": true,
       "origin": true
     },
-    "files": {
+    "file": {
       "storage": "DISK",
       "path": "./tmp/",
       "limits": {

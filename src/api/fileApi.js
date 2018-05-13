@@ -1,64 +1,15 @@
-import path from 'path';
-import fs from 'fs';
-
 import express from 'express';
-import multer from 'multer';
 import config from 'config';
-import safeUid from 'uid-safe';
-import rimraf from 'rimraf';
-import mkdirp from 'mkdirp';
 
 import serviceToRoute from '@ewoken/backend-common/lib/api/serviceToRoute';
 import { ValidationError } from '@ewoken/backend-common/lib/errors';
+import getStorage from '../utils/fileStorages';
 
-const fileApiConfig = config.get('api.files');
-
-const FileStorageEnum = {
-  Memory: 'MEMORY',
-  Disk: 'DISK',
-};
-
-const storage = (() => {
-  switch (fileApiConfig.storage) {
-    case FileStorageEnum.Memory:
-      return multer.memoryStorage();
-
-    case FileStorageEnum.Disk:
-    default:
-      mkdirp.sync(fileApiConfig.path);
-      return multer.diskStorage({
-        destination(req, file, cb) {
-          cb(null, fileApiConfig.path);
-        },
-        filename(req, file, cb) {
-          cb(null, safeUid.sync(16 * 6 / 8)); // TODO
-        },
-      });
-  }
-})();
-
-const FILE_FIELD = 'files';
-const upload = multer({
-  storage,
-  limits: {
-    fieldNameSize: Buffer.from(FILE_FIELD).length,
-    fields: 0,
-    fileSize: fileApiConfig.limits.fileSize,
-    files: fileApiConfig.limits.filesPerRequest,
-    parts: fileApiConfig.limits.filesPerRequest,
-    headerPairs: fileApiConfig.limits.filesPerRequest * 10,
-  },
-  fileFilter(req, file, callback) {
-    callback(
-      null,
-      fileApiConfig.authorizedMimeTypes === true ||
-        fileApiConfig.authorizedMimeTypes.includes(file.mimetype),
-    );
-  },
-});
+const fileApiConfig = config.get('api.file');
 
 function buildFileApi(fileService) {
   const router = new express.Router();
+  const fileStorage = getStorage(fileApiConfig);
 
   router.post(
     '/',
@@ -70,7 +21,7 @@ function buildFileApi(fileService) {
       }
       next();
     },
-    upload.array(FILE_FIELD),
+    fileStorage.uploadMiddleware,
     async (req, res, next) => {
       try {
         if (req.files.length < 1) {
@@ -96,10 +47,8 @@ function buildFileApi(fileService) {
       const fileId = req.params.id;
       const [file] = await fileService.getFiles([fileId], req.context);
       if (file) {
-        res.download(
-          path.join(fileApiConfig.path, fileId),
-          file.filename,
-          error => next(error),
+        res.download(fileStorage.getFilePath(file.id), file.filename, error =>
+          next(error),
         );
       } else {
         next();
@@ -120,17 +69,7 @@ function buildFileApi(fileService) {
     serviceToRoute(async (fileIds, context) => {
       const res = await fileService.deleteFiles(fileIds, context);
 
-      await Promise.all(
-        fileIds.map(
-          fileId =>
-            new Promise((resolve, reject) => {
-              fs.unlink(path.join(fileApiConfig.path, fileId), err => {
-                if (err) reject(err);
-                resolve();
-              });
-            }),
-        ),
-      );
+      await fileStorage.deleteFiles(fileIds);
 
       return res;
     }),
@@ -142,12 +81,7 @@ function buildFileApi(fileService) {
       serviceToRoute(async () => {
         const res = await fileService.deleteAllFiles();
 
-        await new Promise((resolve, reject) => {
-          rimraf(path.join(fileApiConfig.path, './*'), (err, value) => {
-            if (err) reject(err);
-            resolve(value);
-          });
-        });
+        await fileStorage.deleteAllFiles();
 
         return res;
       }),
