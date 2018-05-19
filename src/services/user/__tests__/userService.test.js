@@ -1,4 +1,3 @@
-// TODO factorize
 import { omit } from 'ramda';
 import MailDev from 'maildev';
 import config from 'config';
@@ -14,11 +13,18 @@ import { User } from '../types';
 import Context from '../../../utils/Context';
 
 const f = omit(['createdAt']);
+const credentials = {
+  email: 'test@test.org',
+  password: '1234567',
+};
+const emptyContext = new Context();
 
 let maildev;
 let environment;
 let userService;
 let userServiceEvents;
+let user;
+let loggedContext;
 beforeAll(async () => {
   maildev = new MailDev({
     smtp: config.get('environment.mailer.options.port'),
@@ -52,6 +58,8 @@ beforeEach(async () => {
   userServiceEvents = [];
   // clean before each test because the last one may have failed
   await userService.deleteAllUsers();
+  user = await userService.signUp(credentials, emptyContext);
+  loggedContext = new Context({ user });
 });
 
 afterAll(async () => {
@@ -63,23 +71,13 @@ afterAll(async () => {
 
 describe('userService', () => {
   describe('.signUp(newUser, context)', () => {
-    const context = new Context();
     test('should sign up an user', async () => {
-      const newUser = {
-        email: 'plop@plop.com',
-        password: 'ploploploploploploploplop',
-      };
+      assertTest(User, user);
+      expect(user.email).toEqual(credentials.email);
 
-      const insertedUser = await userService.signUp(newUser, context);
-      assertTest(User, insertedUser);
-      expect(insertedUser.email).toEqual(newUser.email);
-
-      const returnedUser = await userService.getUser(
-        insertedUser.id,
-        new Context({ user: insertedUser }),
-      );
-      expect(returnedUser).toEqual(insertedUser);
-      expect(userServiceEvents).toMatchObject([signedUp(insertedUser)]);
+      const returnedUser = await userService.getUser(user.id, loggedContext);
+      expect(returnedUser).toEqual(user);
+      expect(userServiceEvents).toMatchObject([signedUp(user)]);
     });
 
     test('should fail for a bad user', async () => {
@@ -87,55 +85,36 @@ describe('userService', () => {
         email: 'plop@plop.com',
         password: '',
       };
-      await expect(userService.signUp(badUser, context)).rejects.toThrow(
+      await expect(userService.signUp(badUser, emptyContext)).rejects.toThrow(
         /Validation/,
       );
     });
 
     test('should fail for an existing email', async () => {
       const newUser = {
-        email: 'plop@plop.com',
+        email: credentials.email,
         password: 'helloworld',
       };
-      await userService.signUp(newUser, context);
-      await expect(userService.signUp(newUser, context)).rejects.toThrow(
-        /plop@plop.com/,
+      await expect(userService.signUp(newUser, emptyContext)).rejects.toThrow(
+        /test@test.org/,
       );
     });
 
     test('should fail if already logged', async () => {
-      const newUser = {
-        id: '1',
-        email: 'plop@plop.com',
-        createdAt: '2018-01-01T00:00:00.000Z',
-        updatedAt: '2018-01-01T00:00:00.000Z',
-      };
-      const context2 = new Context({ user: newUser });
       await expect(
         userService.signUp(
-          { email: newUser.email, password: '1234567' },
-          context2,
+          { email: 'plop@plop.com', password: '1234567' },
+          loggedContext,
         ),
       ).rejects.toThrow(/logged/);
     });
   });
 
   describe('.logIn(credentials, context)', () => {
-    const testCredentials = {
-      email: 'plop@plop.com',
-      password: 'azertyuiop',
-    };
-    const context = new Context();
-    let testUser;
-
-    beforeEach(async () => {
-      testUser = await userService.signUp(testCredentials, context);
-    });
-
     test('should log in a user with good credentials', async () => {
-      const loggedUser = await userService.logIn(testCredentials, context);
+      const loggedUser = await userService.logIn(credentials, emptyContext);
       assertTest(User, loggedUser);
-      expect(loggedUser.email).toEqual(testCredentials.email);
+      expect(loggedUser.email).toEqual(credentials.email);
       expect(userServiceEvents).toMatchObject([
         f(signedUp(loggedUser)),
         f(loggedIn(loggedUser)),
@@ -143,88 +122,68 @@ describe('userService', () => {
     });
 
     test('should fail with bad email', async () => {
-      const credentials = { email: 'plopp@plop.com', password: 'azertyuiop' };
-      await expect(userService.logIn(credentials, context)).rejects.toThrow(
-        /Bad credentials/,
-      );
+      const badCredentials = { email: 'plop@plop.com', password: '1234567' };
+      await expect(
+        userService.logIn(badCredentials, emptyContext),
+      ).rejects.toThrow(/Bad credentials/);
     });
 
     test('should fail with bad password', async () => {
-      const credentials = { email: 'plop@plop.com', password: 'azertyuiopm' };
-      await expect(userService.logIn(credentials, context)).rejects.toThrow(
-        /Bad credentials/,
-      );
+      const badCredentials = { email: 'test@test.org', password: '123456' };
+      await expect(
+        userService.logIn(badCredentials, emptyContext),
+      ).rejects.toThrow(/Bad credentials/);
     });
 
     test('should fail if logged', async () => {
-      const context2 = new Context({ user: testUser });
-      await expect(userService.logIn(testUser, context2)).rejects.toThrow(
-        /logged/,
-      );
+      await expect(
+        userService.logIn(credentials, loggedContext),
+      ).rejects.toThrow(/logged/);
     });
   });
 
   describe('.logInWithToken(token, context)', () => {
-    const credentials = { email: 'plop@plop.com', password: 'azertyuiop' };
-    const context = new Context();
-    let currentUser;
     let token;
 
     beforeEach(async () => {
-      currentUser = await userService.signUp(credentials, context);
-      token = await userService.generateAuthToken(currentUser.id);
+      token = await userService.generateAuthToken(user.id);
     });
 
     test('should log in with a valid auth token', async () => {
-      const loggedUser = await userService.logInWithToken({ token }, context);
-      expect(loggedUser.id).toEqual(currentUser.id);
+      const loggedUser = await userService.logInWithToken(
+        { token },
+        emptyContext,
+      );
+      expect(loggedUser.id).toEqual(user.id);
     });
 
     test('should return logged user if logged and discard token', async () => {
-      const loggedUser = await userService.logIn(credentials, context);
-      const loggedUser2 = await userService.logInWithToken({ token }, context);
-      expect(loggedUser2).toEqual(loggedUser);
+      const loggedUser2 = await userService.logInWithToken(
+        { token },
+        loggedContext,
+      );
+      expect(loggedUser2).toEqual(user);
       await expect(
-        userService.logInWithToken({ token }, context),
+        userService.logInWithToken({ token }, emptyContext),
       ).rejects.toThrow(/Invalid or expired token/);
     });
   });
 
   describe('.getCurrentUser(args, context)', () => {
-    const user = {
-      id: '7e9e3554-5460-4d49-a91b-277311e9bc0b',
-      email: 'plop@plop.com',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-    const context = new Context({ user });
-
     test('should return the logged user', async () => {
-      const loggedUser = await userService.getCurrentUser({}, context);
+      const loggedUser = await userService.getCurrentUser({}, loggedContext);
       expect(loggedUser).toEqual(user);
     });
 
     test('should return null if not logged', async () => {
-      const loggedUser = await userService.getCurrentUser({}, new Context());
+      const loggedUser = await userService.getCurrentUser({}, emptyContext);
       expect(loggedUser).toEqual(null);
     });
   });
 
   describe('.getUser(id, context)', async () => {
-    const newUser = {
-      email: 'plop@plop.com',
-      password: 'helloworld',
-    };
-    const context = new Context();
-    let user;
-    beforeEach(async () => {
-      context.user = null;
-      user = await userService.signUp(newUser, context);
-      context.user = user;
-    });
-
     test('should return a user by id', async () => {
-      const returnedUser = await userService.getUser(user.id, context);
+      const returnedUser = await userService.getUser(user.id, loggedContext);
       expect(returnedUser.passwordHash).toBeUndefined();
       expect(returnedUser).toEqual(user);
     });
@@ -232,7 +191,7 @@ describe('userService', () => {
     test('should return null when it not exists', async () => {
       const returnedUser = await userService.getUser(
         '7e9e3554-5460-4d49-a91b-277311e9bc0b',
-        context,
+        loggedContext,
       );
       expect(returnedUser).toBe(null);
     });
@@ -240,34 +199,21 @@ describe('userService', () => {
     test('should return null when it is not authorized', async () => {
       const returnedUser = await userService.getUser(
         '7e9e3554-5460-4d49-a91b-277311e9bc0b',
-        context,
+        loggedContext,
       );
       expect(returnedUser).toBe(null);
     });
 
     test('should return null when it is not logged', async () => {
-      const notLoggedContext = new Context();
       const returnedUser = await userService.getUser(
         '7e9e3554-5460-4d49-a91b-277311e9bc0b',
-        notLoggedContext,
+        emptyContext,
       );
       expect(returnedUser).toBe(null);
     });
   });
 
   describe('.update(userUpdate, context)', () => {
-    const credentials = {
-      email: 'plop@plop.com',
-      password: 'helloworld',
-    };
-    const context = new Context();
-    let user;
-    beforeEach(async () => {
-      context.user = null;
-      user = await userService.signUp(credentials, context);
-      context.user = user;
-    });
-
     test('should update user informations', async () => {
       const password = 'plopaaaaaaa';
       const returnedUser = await userService.updateUser(
@@ -276,11 +222,11 @@ describe('userService', () => {
           formerPassword: credentials.password,
           password,
         },
-        context,
+        loggedContext,
       );
       const loggedUser = await userService.logIn(
         { email: credentials.email, password },
-        new Context(),
+        emptyContext,
       );
       const updates = { passwordHash: expect.any(String) };
       expect(loggedUser).toEqual(returnedUser);
@@ -299,7 +245,7 @@ describe('userService', () => {
             formerPassword: credentials.password,
             password: '1234567',
           },
-          new Context(),
+          emptyContext,
         ),
       ).rejects.toThrow(/Unauthorized/);
     });
@@ -312,36 +258,28 @@ describe('userService', () => {
             formerPassword: 'plop',
             password: 'plop',
           },
-          context,
+          loggedContext,
         ),
       ).rejects.toThrow(/Validation/);
     });
   });
 
   describe('.logOut(args, context)', () => {
-    const user = {
-      id: '7e9e3554-5460-4d49-a91b-277311e9bc0b',
-      email: 'plop@plop.com',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-    const context = new Context({ user });
-
     test('should return a status OK when logged', async () => {
-      const status = await userService.logOut({}, context);
+      const status = await userService.logOut({}, loggedContext);
       expect(status).toEqual({ logOut: true });
-      expect(userServiceEvents).toMatchObject([f(loggedOut(user))]);
+      expect(userServiceEvents).toMatchObject([
+        f(signedUp(user)),
+        f(loggedOut(user)),
+      ]);
     });
   });
 
   describe('.sendResetPasswordEmail', () => {
     test('should send an email with a link to main-app', async () => {
-      const context = new Context();
-      const email = 'azerty@azerty.com';
-      await userService.signUp({ email, password: '1234567' }, context);
       const response = await userService.sendResetPasswordEmail(
-        { email },
-        context,
+        { email: credentials.email },
+        emptyContext,
       );
       expect(response).toEqual({ ok: true });
       const message = await new Promise(resolve =>
@@ -349,12 +287,12 @@ describe('userService', () => {
           resolve(emailMessage);
         }),
       );
-      expect(message.to[0].address).toEqual(email);
+      expect(message.to[0].address).toEqual(credentials.email);
     });
     test('should not throw when email is not known', async () => {
       const response = await userService.sendResetPasswordEmail(
         { email: 'azerty@azerty.com' },
-        new Context(),
+        emptyContext,
       );
       expect(response).toEqual({ ok: true });
     });
