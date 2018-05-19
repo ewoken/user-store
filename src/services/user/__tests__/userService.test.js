@@ -262,12 +262,12 @@ describe('userService', () => {
         userService.updateUser(
           {
             id: user.id,
-            formerPassword: 'plop',
-            password: 'plop',
+            formerPassword: 'helloworld',
+            password: 'helloworld',
           },
           loggedContext,
         ),
-      ).rejects.toThrow(/Validation/);
+      ).rejects.toThrow(/Bad password/);
     });
   });
 
