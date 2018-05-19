@@ -15,7 +15,9 @@ const DomainType = Joi.string();
 
 export const FileInput = Joi.object({
   id: FileId.required(),
-  filename: Joi.string().required(),
+  filename: Joi.string()
+    .trim()
+    .required(),
   mimeType: Joi.string().required(),
   size: Joi.number().required(),
   domainType: DomainType.default(TEMPORARY_FILE_TYPE),

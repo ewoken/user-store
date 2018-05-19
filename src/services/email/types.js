@@ -32,11 +32,16 @@ export const EmailMessageInput = Joi.object({
   targetUserId: Joi.string().default(null),
   type: Joi.string().required(),
   subject: Joi.string()
+    .trim()
     .min(5)
     .max(255)
     .required(),
-  text: Joi.string().min(1),
-  html: Joi.string().min(1),
+  text: Joi.string()
+    .trim()
+    .min(1),
+  html: Joi.string()
+    .trim()
+    .min(1),
 }).xor('text', 'html');
 
 export const EmailMessage = EmailMessageInput.keys({
