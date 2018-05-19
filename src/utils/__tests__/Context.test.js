@@ -11,6 +11,7 @@ const system = {
   name: 'test',
   version: 'test',
   instanceId: 'test',
+  token: 'test',
 };
 
 describe('ContextInitializer schema', () => {
@@ -107,6 +108,18 @@ describe('Context', () => {
       expect(new Context().isAuthentified()).toBe(false);
       expect(new Context({ user }).isAuthentified()).toBe(true);
       expect(new Context({ system }).isAuthentified()).toBe(true);
+    });
+  });
+
+  describe('.asSystem', () => {
+    const requestId = 'test';
+    test('should return a new context made from this where system = localSystem', () => {
+      Context.localSystem = system;
+      const firstContext = new Context({ requestId });
+      const newContext = firstContext.asSystem();
+      expect(newContext.requestId).toBe(requestId);
+      expect(newContext.user).toBe(null);
+      expect(newContext.system).toEqual(system);
     });
   });
 });

@@ -22,6 +22,7 @@ import {
 
 import Context from '../utils/Context';
 import authorizationTokenMiddleware from '../utils/authorizationTokenMiddleware';
+import userStoreIdentity from '../identity';
 
 import buildUserApi from './userApi';
 import buildFileApi from './fileApi';
@@ -34,6 +35,7 @@ function buildApi({ redisClient, logger, i18n }, services) {
     store: new RedisStore({ client: redisClient }),
     logErrors: error => logger.error(error),
   };
+  Context.localSystem = userStoreIdentity;
 
   app.use(addRequestIdMiddleware());
   app.use(logRequestMiddleware(logger));

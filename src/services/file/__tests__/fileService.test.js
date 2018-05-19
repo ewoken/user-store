@@ -54,6 +54,7 @@ describe('file service', () => {
       name: 'test',
       version: 'test',
       instanceId: 'test',
+      token: 'test',
     },
   });
   const userContext = new Context({

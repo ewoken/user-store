@@ -12,6 +12,13 @@ import { signedUp, loggedIn, loggedOut, updated } from '../events';
 import { User } from '../types';
 import Context from '../../../utils/Context';
 
+Context.localSystem = {
+  name: 'test',
+  version: 'test',
+  instanceId: 'test',
+  token: 'test',
+};
+
 const f = omit(['createdAt']);
 const credentials = {
   email: 'test@test.org',

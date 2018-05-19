@@ -20,10 +20,13 @@ export const ContextSystem = Joi.object({
   name: Joi.string().required(),
   version: Joi.string().required(),
   instanceId: Joi.string().required(),
+  token: Joi.string().required(),
 });
 
 export const ContextInitializer = Joi.object({
-  requestId: Joi.string().default(null),
+  requestId: Joi.string()
+    .allow(null)
+    .default(null),
   user: ContextUser,
   system: ContextSystem,
   t: Joi.func().default(i => i),
@@ -54,11 +57,20 @@ class Context {
     });
   }
 
-  asSystem(system) {
+  static set localSystem(system) {
+    assertInternal(ContextSystem, system);
+    Context.prototype.localSystem = system;
+  }
+
+  static get localSystem() {
+    return Context.prototype.localSystem;
+  }
+
+  asSystem() {
     return new Context({
-      ...this.context,
+      ...this,
       user: undefined,
-      system,
+      system: Context.localSystem,
     });
   }
 

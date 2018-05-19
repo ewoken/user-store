@@ -16,3 +16,6 @@ env:
 
 before_install:
   - mysql -e 'CREATE DATABASE IF NOT EXISTS `user-store`;'
+
+after_script:
+  - cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js

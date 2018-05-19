@@ -1,21 +1,17 @@
 import path from 'path';
-import jwt from 'jsonwebtoken';
-import config from 'config';
 
 import getBaseUrl from '@ewoken/backend-common/lib/getBaseUrl';
 
 import launchApp from '../../server';
 import Client from '../client';
+import userStoreIdentity from '../../identity';
 
 let server;
 let userClient;
 let systemClient;
 let fileMetas;
 const credentials = { email: 'test@test.com', password: '1234567' };
-const token = jwt.sign(
-  { name: 'user-store', version: 'test', instanceId: 'test' },
-  config.get('api.authorizationSecret'),
-);
+const { token } = userStoreIdentity;
 const filePaths = ['./data/test01.jpg', './data/test02.txt'].map(p =>
   path.join(__dirname, p),
 );

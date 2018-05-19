@@ -4,12 +4,15 @@ import config from 'config';
 
 const secret = config.get('api.authorizationSecret');
 
-const userStore = {
+const identityData = {
   name: 'user-store',
   version: git.long(),
   instanceId: '1',
 };
 
-export const IDENTITY_TOKEN = jwt.sign(userStore, secret);
+const identity = {
+  ...identityData,
+  token: jwt.sign(identityData, secret),
+};
 
-export default userStore;
+export default identity;

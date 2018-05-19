@@ -6,22 +6,25 @@ import Context from './Context';
 
 const INVALID_AUTHORIZATION_TOKEN = 'INVALID_AUTHORIZATION_TOKEN';
 
-// TODO improve
+// TODO improve + @common
 export default function authorizationTokenMiddlewareFactory({ secret }) {
   return function authorizationTokenMiddleware(req, res, next) {
-    const signedToken = req.headers.authorization;
-    if (signedToken) {
+    const token = req.headers.authorization;
+    if (token) {
       try {
         req.context.assertNotLogged();
-        const token = jwt.verify(signedToken, secret);
-        req.system = omit(['iat'], token);
+        const tokenData = omit(['iat'], jwt.verify(token, secret));
+        req.system = {
+          token,
+          ...tokenData,
+        };
         req.context = Context.fromReq(req);
         next();
       } catch (error) {
         if (error.name === 'JsonWebTokenError') {
           next(
             new DomainError('Invalid token', INVALID_AUTHORIZATION_TOKEN, {
-              token: signedToken,
+              token,
             }),
           );
         } else {

@@ -9,7 +9,6 @@ import { DomainError, only } from '@ewoken/backend-common/lib/errors';
 import Service from '@ewoken/backend-common/lib/Service';
 import { maskArgs } from '@ewoken/backend-common/lib/logger';
 
-import userStore from '../../identity';
 import { signedUp, loggedIn, loggedOut, updated } from './events';
 import {
   UserId,
@@ -263,7 +262,7 @@ class UserService extends Service {
             },
           )}"> Go </a>`,
         },
-        context.asSystem(userStore),
+        context.asSystem(),
       );
     }
     return { ok: true };
