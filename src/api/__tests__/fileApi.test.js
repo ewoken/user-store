@@ -10,6 +10,7 @@ let server;
 let userClient;
 let systemClient;
 let fileMetas;
+let url;
 const credentials = { email: 'test@test.com', password: '1234567' };
 const { token } = userStoreIdentity;
 const filePaths = ['./data/test01.jpg', './data/test02.txt'].map(p =>
@@ -18,8 +19,7 @@ const filePaths = ['./data/test01.jpg', './data/test02.txt'].map(p =>
 
 beforeAll(async () => {
   server = await launchApp();
-
-  const url = getBaseUrl(server);
+  url = getBaseUrl(server);
   userClient = new Client(url, { cookie: true });
   systemClient = new Client(url, { headers: { authorization: token } });
 
@@ -30,6 +30,7 @@ beforeAll(async () => {
 });
 
 beforeEach(async () => {
+  await userClient.deleteAllFiles();
   fileMetas = await userClient.addFiles(filePaths);
 });
 
@@ -48,6 +49,18 @@ describe('file api', () => {
     test('should add files', async () => {
       expect(fileMetas).toHaveLength(2);
     });
+
+    test('should fail if not authorized', async () => {
+      const userClient2 = new Client(url, { cookie: true });
+      await userClient2.clearSession();
+      await expect(userClient2.addFiles(filePaths)).rejects.toThrow(
+        /Unauthorized/,
+      );
+    });
+
+    test('should fail with no file', async () => {
+      await expect(userClient.addFiles([])).rejects.toThrow(/Validation/);
+    });
   });
 
   describe('GET /:id', () => {
@@ -60,6 +73,12 @@ describe('file api', () => {
         expect(file.buffer.length).toEqual(fileMetas[index].size);
         expect(file.filename).toEqual(fileMetas[index].filename);
       });
+    });
+
+    test('should fail if file does not exist', async () => {
+      expect(userClient.getFile('azertyuiopqsdfgh')).rejects.toThrow(
+        'Not found',
+      );
     });
   });
 

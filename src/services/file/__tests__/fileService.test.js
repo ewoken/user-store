@@ -125,15 +125,11 @@ describe('file service', () => {
 
       const returnedFiles = await fileService.getFiles(fileIds, systemContext);
       const returnedFiles2 = await fileService.getFiles(fileIds, userContext);
+      const returnedFiles3 = await fileService.getFiles(fileIds, emptyContext);
 
       expect(returnedFiles).toEqual(expect.arrayContaining(files));
       expect(returnedFiles2).toEqual(expect.arrayContaining(files));
-    });
-
-    test('should fail when called by a logged or unauthentified user', async () => {
-      await expect(fileService.getFiles(fileIds, emptyContext)).rejects.toThrow(
-        /Unauthorized/,
-      );
+      expect(returnedFiles3).toEqual(expect.arrayContaining(files));
     });
   });
 

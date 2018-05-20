@@ -92,9 +92,9 @@
     lodash "^4.2.0"
     to-fast-properties "^2.0.0"
 
-"@ewoken/backend-common@1.0.9":
-  version "1.0.9"
-  resolved "https://registry.yarnpkg.com/@ewoken/backend-common/-/backend-common-1.0.9.tgz#50c8489002591a5bb322adc18dc8d9f02944368d"
+"@ewoken/backend-common@1.0.10":
+  version "1.0.10"
+  resolved "https://registry.yarnpkg.com/@ewoken/backend-common/-/backend-common-1.0.10.tgz#e20fa0901ab0ecba56017dce4b6b156708c69b78"
   dependencies:
     content-disposition "^0.5.2"
     content-type "^1.0.4"

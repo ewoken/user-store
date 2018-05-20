@@ -2,19 +2,27 @@ import fs from 'fs';
 import Url from 'url';
 import FormData from 'form-data'; // eslint-disable-line import/no-extraneous-dependencies
 
-import fetchApi, { clearCookies } from '@ewoken/backend-common/lib/fetchApi';
+import fetchApi, {
+  clearCookies,
+  cookieJar,
+} from '@ewoken/backend-common/lib/fetchApi';
 
 // TODO make it reusable for front
 // dev only routes ?
 class Client {
-  constructor(url, options) {
+  constructor(url, options = {}) {
+    const { cookie = false, ...otherOptions } = options;
+
     this.url = url;
     this.hostname = Url.parse(url).hostname;
-    this.options = options;
+    this.cookieJar = cookie ? cookieJar() : null;
+    this.options = cookie
+      ? { cookieJar: this.cookieJar, ...otherOptions }
+      : otherOptions;
   }
 
   clearSession() {
-    return clearCookies(this.hostname);
+    return clearCookies(this.cookieJar, this.hostname);
   }
 
   // =========================================

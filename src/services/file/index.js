@@ -37,8 +37,7 @@ class FileService extends Service {
     return addedFiles.map(format(File));
   }
 
-  async getFiles(fileIdsInput, context) {
-    context.assertAuthentified();
+  async getFiles(fileIdsInput) {
     const fileIds = assertInput(FileIds, fileIdsInput);
 
     const files = await this.fileRepository.getFiles(fileIds);
