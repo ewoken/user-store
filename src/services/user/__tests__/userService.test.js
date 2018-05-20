@@ -1,11 +1,12 @@
 import { omit } from 'ramda';
 import MailDev from 'maildev';
 import config from 'config';
+import { DateTime } from 'luxon';
 
 import { assertTest } from '@ewoken/backend-common/lib/assertSchema';
 
 import buildEnvironment from '../../../environment';
-import UserService from '../index';
+import UserService, { RESET_PASSWORD_TOKEN } from '../index';
 import TokenService from '../../token';
 import EmailService from '../../email';
 import { signedUp, loggedIn, loggedOut, updated } from '../events';
@@ -306,8 +307,27 @@ describe('userService', () => {
   });
 
   describe('.resetPassword', () => {
-    test.skip('should update user password', () => {
-      throw new Error('TODO');
+    test('should update user password', async () => {
+      const password = 'azertyuiop';
+      const resetPasswordToken = await userService.tokenService.createToken({
+        userId: user.id,
+        type: RESET_PASSWORD_TOKEN,
+        expiredAt: DateTime.local()
+          .plus({ days: 1 })
+          .toJSDate(),
+      });
+      await userService.resetPassword(
+        {
+          token: resetPasswordToken,
+          password,
+        },
+        emptyContext,
+      );
+      const loggedUser = await userService.logIn(
+        { ...credentials, password },
+        emptyContext,
+      );
+      expect(loggedUser).toMatchObject({ email: credentials.email });
     });
   });
 });

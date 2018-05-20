@@ -37,7 +37,7 @@ const BAD_PASSWORD = 'BAD_PASSWORD';
 
 // token types
 const AUTH_TOKEN = 'AUTH_TOKEN';
-const RESET_PASSWORD_TOKEN = 'RESET_PASSWORD_TOKEN';
+export const RESET_PASSWORD_TOKEN = 'RESET_PASSWORD_TOKEN'; // TODO maybe put in types
 
 // token durations
 const AUTH_TOKEN_DURATION = config.get(
